@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // 👈 Add this
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -33,17 +33,8 @@ const Login = () => {
   };
 
   return (
-    <div style={{
-      maxWidth: '300px',
-      margin: '100px auto',
-      padding: '20px',
-      border: '2px solid #aaa',
-      borderRadius: '5px',
-      backgroundColor: '#f0f0f0',
-      fontFamily: 'Georgia, serif',
-      boxShadow: '2px 2px 8px rgba(0,0,0,0.2)'
-    }}>
-      <h2 style={{ textAlign: 'center' }}>Login</h2>
+    <div className="max-w-sm mx-auto mt-24 p-6 border-2 border-gray-400 rounded-lg bg-gray-100 shadow-lg font-serif ">
+      <h2 className="text-2xl font-bold text-center mb-4">Login to MIMS</h2>
       <form onSubmit={handleLogin}>
         <input
           type="text"
@@ -51,53 +42,41 @@ const Login = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-          style={{
-            width: '90%',
-            padding: '8px',
-            margin: '8px 0',
-            border: '1px solid #888',
-            borderRadius: '3px'
-          }}
+          className="w-full p-2 mb-3 border border-gray-500 rounded"
         />
         <input
-          type={showPassword ? 'text' : 'password'} // 👈 Toggle type
+          type={showPassword ? 'text' : 'password'}
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{
-            width: '90%',
-            padding: '8px',
-            margin: '8px 0',
-            border: '1px solid #888',
-            borderRadius: '3px'
-          }}
+          className="w-full p-2 mb-3 border border-gray-500 rounded"
         />
-        <div style={{ margin: '8px 0', fontSize: '14px' }}>
+        <div className="mb-4 text-sm">
           <input
             type="checkbox"
             id="showPassword"
             checked={showPassword}
             onChange={() => setShowPassword(!showPassword)}
+            className="mr-2"
           />
-          <label htmlFor="showPassword" style={{ marginLeft: '5px' }}>Show password</label>
+          <label htmlFor="showPassword">Show password</label>
         </div>
         <button
           type="submit"
-          style={{
-            width: '50%',
-            margin: '18px 0',
-            padding: '10px',
-            background: 'linear-gradient(to bottom, #fff, #ccc)',
-            border: '1px solid #666',
-            borderRadius: '3px',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
+          className="w-1/2 mx-auto block p-2 bg-gradient-to-b from-white to-gray-300 border border-gray-600 rounded font-bold hover:bg-gray-200"
         >
           Login
         </button>
       </form>
+      <div className="mt-4 text-center">
+        <p className="text-sm">
+          Do not have an account?
+          <Link to="/register" className="text-blue-600 hover:underline ml-2">
+            Register
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };

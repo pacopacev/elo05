@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -11,7 +11,6 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    // Call the Django registration API
     const res = await fetch('http://localhost:8000/api/register/', {
       method: 'POST',
       headers: {
@@ -31,36 +30,50 @@ const Register = () => {
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      <form onSubmit={handleRegister}>
+    <div className="max-w-sm mx-auto mt-24 p-6 border-2 border-gray-300 rounded-lg shadow-lg bg-gray-100 font-serif">
+      <h2 className="text-2xl font-bold text-center mb-4">Register to MIMS</h2>
+      <form onSubmit={handleRegister} className="space-y-4">
         <input
           type="text"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
+          className="w-full p-2 border border-gray-400 rounded"
         />
-        <br />
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className="w-full p-2 border border-gray-400 rounded"
         />
-        <br />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          className="w-full p-2 border border-gray-400 rounded"
         />
-        <br />
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit">Register</button>
+        {error && <p className="text-red-600 text-sm">{error}</p>}
+        <button
+          type="submit"
+          className="w-1/2 mx-auto block p-2 bg-gradient-to-b from-white to-gray-300 border border-gray-600 rounded font-bold hover:bg-gray-200"
+        >
+          Register
+        </button>
       </form>
+
+      <div className="mt-4 text-center">
+        <p className="text-sm">
+          Already have an account?
+          <Link to="/login" className="text-blue-600 hover:underline ml-2">
+            Login
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };

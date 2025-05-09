@@ -1,27 +1,14 @@
-import React, { useEffect, useState } from 'react';
+
+import React from 'react';
 import Sidebar from './Sidebar';
 
-export default function Dashboard() {
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    fetch('http://localhost:8000/api/dashboard/', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    .then(res => res.json())
-    .then(data => setMessage(data.message));
-  }, []);
-
+const Dashboard = () => {
   return (
-    <div>
-      <Sidebar />
-      <div style={{ marginLeft: '220px', padding: '20px' }}>
-        <h1>Dashboard</h1>
-        <p>{message}</p>
-      </div>
-    </div>
+    <Sidebar>
+      <h1 className="text-3xl font-bold">Welcome to the Dashboard</h1>
+      <p className="mt-4">This is the main content area.</p>
+    </Sidebar>
   );
-}
+};
+
+export default Dashboard;
