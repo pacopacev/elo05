@@ -6,7 +6,7 @@ const Sidebar = () => {
   return (
     <div className="flex flex-col min-h-screen font-sans border-2 border-gray-400 rounded-sm bg-gray-100 shadow-lg">
       {/* Header */}
-    <header className="bg-blue-600 text-white p-3 shadow-md flex justify-between items-center">
+    <header className="bg-blue-200 shadow-lg text-white p-1 shadow-md flex justify-between items-center">
         <h1 className="text-xl font-bold">MIMS Dashboard</h1>
         <div className="ml-auto"> {/* This ensures the dropdown aligns to the right */}
           <DropdownImage />
