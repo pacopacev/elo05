@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import logo from '../assets/images/flowbit.png';
 
 const Login = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);  // To track if the request is in progress
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start loading
+
     const res = await fetch('http://localhost:8000/api/login/', {
       method: 'POST',
       headers: {
@@ -24,8 +28,10 @@ const Login = () => {
       data = { error: 'Invalid server response' };
     }
 
+    setLoading(false); // Stop loading
+
     if (res.ok && data.token) {
-      localStorage.setItem('token', data.token);
+      localStorage.setItem('authToken', data.token);  // Using 'authToken' for consistency
       navigate('/dashboard');
     } else {
       alert('Login failed: ' + (data.error || 'Unknown error'));
@@ -33,8 +39,8 @@ const Login = () => {
   };
 
   return (
-    <div className="max-w-sm mx-auto mt-24 p-6 border-2 border-gray-400 rounded-lg bg-gray-100 shadow-lg font-serif ">
-      <h2 className="text-2xl font-bold text-center mb-4">Login to MIMS</h2>
+    <div className="max-w-sm mx-auto mt-24 p-6 border-2 border-gray-400 rounded-lg bg-gray-100 shadow-lg font-serif">
+      <img className="p-2 w-50 h-40 mx-auto object-contain" src={logo} alt="Logo" />
       <form onSubmit={handleLogin}>
         <input
           type="text"
@@ -65,8 +71,9 @@ const Login = () => {
         <button
           type="submit"
           className="w-1/2 mx-auto block p-2 bg-gradient-to-b from-white to-gray-300 border border-gray-600 rounded font-bold hover:bg-gray-200"
+          disabled={loading}  // Disable button while loading
         >
-          Login
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
       <div className="mt-4 text-center">

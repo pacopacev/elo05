@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import logo from '../assets/images/logo.ico';
+import logo from '../assets/images/flowbit.png';
 
 const DropdownImage = () => {
   const [isOpen, setIsOpen] = useState(false);

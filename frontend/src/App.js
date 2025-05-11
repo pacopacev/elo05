@@ -7,9 +7,11 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 
-
+import MainPage from './pages/MainPage'; // Adjust the path based on where your MainPage component is located
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import UserTable from './pages/UserTable';
+
 
 
 function App() {
@@ -23,9 +25,11 @@ function App() {
 
         {/* Protected / Layout Route with nested pages */}
         <Route path="/dashboard" element={<Dashboard />}>
-          <Route index element={<Profile />} /> {/* Default content inside dashboard */}
+          <Route index element={<MainPage />} /> {/* Default content inside dashboard */}
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="users" element={<UserTable />} />
+
         </Route>
       </Routes>
     </Router>

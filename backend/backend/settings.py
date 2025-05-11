@@ -67,6 +67,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+'core.middleware.GlobalRequestMiddleware',
 
 ]
 
@@ -107,6 +108,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 # CORS
@@ -114,6 +118,7 @@ CORS_ALLOW_ALL_ORIGINS = True  # For development only
 # For production, use:
 CORS_ALLOWED_ORIGINS = ["http://localhost:8080",
                         "http://127.0.0.1:8080",
+                        "http://localhost:3000",
                         ]
 
 # Password validation

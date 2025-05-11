@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import logo from '../assets/images/flowbit.png';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -30,8 +31,9 @@ const Register = () => {
   };
 
   return (
-    <div className="max-w-sm mx-auto mt-24 p-6 border-2 border-gray-300 rounded-lg shadow-lg bg-gray-100 font-serif">
-      <h2 className="text-2xl font-bold text-center mb-4">Register to MIMS</h2>
+    <div className="max-w-sm mx-auto mt-24 p-6 border-2 border-gray-400 rounded-lg bg-gray-100 shadow-lg font-serif">
+      {/*<h2 className="text-2xl font-bold text-center mb-4">Register to MIMS</h2>*/}
+      <img className="p-2 w-50 h-40 mx-auto object-contain" src={logo} alt="Logo" />
       <form onSubmit={handleRegister} className="space-y-4">
         <input
           type="text"
@@ -39,7 +41,7 @@ const Register = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-          className="w-full p-2 border border-gray-400 rounded"
+          className="w-full p-2 border border-gray-500 rounded"
         />
         <input
           type="email"
@@ -47,7 +49,7 @@ const Register = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full p-2 border border-gray-400 rounded"
+          className="w-full p-2 border border-gray-500 rounded"
         />
         <input
           type="password"
@@ -55,7 +57,7 @@ const Register = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full p-2 border border-gray-400 rounded"
+          className="w-full p-2 border border-gray-500 rounded"
         />
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <button

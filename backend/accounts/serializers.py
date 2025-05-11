@@ -19,14 +19,10 @@ class UserSerializer(serializers.ModelSerializer):
         Token.objects.create(user=user)
         return user
 
-class MenuSerializer(serializers.ModelSerializer):
-    children = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Menu
-        fields = ('id', 'title', 'parent', 'icon', 'route', 'children')
-
-    def get_children(self, obj):
-        children = obj.menu_set.filter(is_active=True).order_by('sort_order')
-        serializer = self.__class__(children, many=True)
-        return serializer.data
+class MenuSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField(max_length=100)
+    icon = serializers.CharField(max_length=50, allow_blank=True)
+    route = serializers.CharField(max_length=100, allow_blank=True)
+    sort_order = serializers.IntegerField()
+    is_active = serializers.BooleanField()
