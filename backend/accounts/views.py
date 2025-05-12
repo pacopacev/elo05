@@ -1,4 +1,5 @@
 # accounts/views.py
+from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -10,8 +11,12 @@ from django.db import connection
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from core.request import get_user_id
 from django.http import JsonResponse
+from rest_framework.decorators import api_view
+
 
 
 class RegisterView(generics.CreateAPIView):
@@ -39,6 +44,7 @@ class LoginView(generics.GenericAPIView):
         user = authenticate(username=username, password=password)
         if user:
             token, created = Token.objects.get_or_create(user=user)
+            insert_user_log(user.pk)
             return Response({
                 'token': token.key,
                 'user_id': user.pk,
@@ -47,6 +53,7 @@ class LoginView(generics.GenericAPIView):
         return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
 class MenuListView(APIView, GlobalModel):
+    # authentication_classes = [SessionAuthentication]
     authentication_classes = [TokenAuthentication]  # Ensure Token Authentication
     permission_classes = [IsAuthenticated]  # Ensure user is authenticated
     def get(self, request):
@@ -95,8 +102,50 @@ def get_users(request):
 
     # Fetching data using the GlobalModel method
     data = GlobalModel.fetch_data_from_db(query)
+    # print(data)  # Optional: For debugging purposes
+
+    return JsonResponse(data, safe=False)  # Return data as a JsonResponse
+
+def get_user_log(request):
+    query = "SELECT id, user_id, email, created_at FROM user_log ORDER BY created_at DESC "
+
+    # Fetching data using the GlobalModel method
+    data = GlobalModel.fetch_data_from_db(query)
     print(data)  # Optional: For debugging purposes
 
     return JsonResponse(data, safe=False)  # Return data as a JsonResponse
+
+def insert_user_log(user_id):
+    query_get_email = "SELECT email FROM auth_user WHERE id = %s"
+    data = GlobalModel.fetch_data_from_db(query_get_email, [user_id])
+    if data[0]['email'] =='':
+        raise ValueError("User not found")
+    email = data[0]['email']
+    insert_params = {
+        'user_id': user_id,
+        'email': email,
+        'created_at': timezone.now()  # Prefer Django's timezone-aware datetime
+    }
+    rows_inserted = GlobalModel.insert_query('user_log', insert_params)
+    return Response({
+        'rows_inserted': rows_inserted,
+    })
+
+@api_view(['POST'])
+def del_user_log(request):
+    id = request.data.get('sequence_id')
+    where = {
+        'id': id,
+    }
+    if not id:
+        return JsonResponse({'status': 'error', 'message': 'user_id is required'}, status=400)
+    # Prepare the raw SQL query to delete the user log
+    try:
+        GlobalModel.delete_query('user_log', where)
+        return JsonResponse({'status': 'success', 'message': f'User log with id {id} deleted successfully'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
 
 

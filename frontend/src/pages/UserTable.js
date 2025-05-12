@@ -145,7 +145,7 @@ const MaterialUITable = () => {
                         '&:hover': {
                           backgroundColor: 'rgba(0, 0, 0, 0.08)',
                         },
-                      }}
+                      }} sx={{ border: '1px solid #ccc' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center' }}>
                         {render('Header')}
@@ -180,7 +180,7 @@ const MaterialUITable = () => {
                   return (
                     <TableCell
                       key={cellKey}
-                      {...restCellProps}
+                      {...restCellProps} sx={{ border: '1px solid #ccc' }}
                     >
                       {cell.render('Cell')}
                     </TableCell>

@@ -11,6 +11,7 @@ import MainPage from './pages/MainPage'; // Adjust the path based on where your 
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import UserTable from './pages/UserTable';
+import UserLogTable from './pages/UserLogTable';
 
 
 
@@ -29,6 +30,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
           <Route path="users" element={<UserTable />} />
+          <Route path="user_log" element={<UserLogTable />} />
 
         </Route>
       </Routes>

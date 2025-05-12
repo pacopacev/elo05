@@ -1,5 +1,5 @@
 from datetime import datetime
-from django.db import connection
+from django.db import connection, DatabaseError
 
 from rest_framework.exceptions import NotAuthenticated
 
@@ -30,3 +30,31 @@ class GlobalModel:
             columns = [col[0] for col in cursor.description]
             result = cursor.fetchall()
             return [dict(zip(columns, row)) for row in result]
+
+    def insert_query(table, params: dict):
+        if not table or not params:
+            raise ValueError("Table name and parameters are required")
+
+        columns = ', '.join(params.keys())
+        placeholders = ', '.join(['%s'] * len(params))
+        values = list(params.values())
+
+        query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
+
+        with connection.cursor() as cursor:
+            cursor.execute(query, values)
+            return cursor.rowcount  # returns 1 if insert succeeded
+
+    def delete_query(table: str, where: dict):
+        if not table or not where:
+            raise ValueError("Both table name and where clause are required")
+        where_clause = ' AND '.join([f"{col} = %s" for col in where.keys()])
+        values = list(where.values())
+        query = f"DELETE FROM {table} WHERE {where_clause}"
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(query, values)
+                return cursor.rowcount  # Number of rows deleted
+        except DatabaseError as e:
+            print(f"Database error during delete: {e}")
+            raise

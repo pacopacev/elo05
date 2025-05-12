@@ -13,5 +13,5 @@ def get_user_id():
     request = get_request()
     if not request or not request.user.is_authenticated:
         raise PermissionDenied("User not authenticated")
-    print(request.user.id)
+    # print(request.user.id)
     return request.user.id

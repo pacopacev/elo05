@@ -42,6 +42,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3002',
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -92,7 +96,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", # or wherever your React app runs
+]
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
