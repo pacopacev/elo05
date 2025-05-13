@@ -59,7 +59,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'backend.settings',
-    'accounts'
+    'accounts',
+    'flowbit'
 ]
 
 MIDDLEWARE = [

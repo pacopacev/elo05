@@ -1,7 +1,8 @@
 from django.contrib import admin
-from django.urls import path, include  # Ensure include is imported
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('accounts.urls')),  # Include the app's URLs here
+    path('', include('accounts.urls')),
+    path('flowbit/', include('flowbit.urls')),
 ]

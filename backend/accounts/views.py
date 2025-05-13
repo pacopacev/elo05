@@ -98,7 +98,7 @@ class MenuListView(APIView, GlobalModel):
 
 
 def get_users(request):
-    query = "SELECT id, username, email FROM auth_user ORDER BY id ASC"
+    query = "SELECT id, username, email, date_joined FROM auth_user ORDER BY id ASC"
 
     # Fetching data using the GlobalModel method
     data = GlobalModel.fetch_data_from_db(query)
@@ -108,11 +108,9 @@ def get_users(request):
 
 def get_user_log(request):
     query = "SELECT id, user_id, email, created_at FROM user_log ORDER BY created_at DESC "
-
     # Fetching data using the GlobalModel method
     data = GlobalModel.fetch_data_from_db(query)
-    print(data)  # Optional: For debugging purposes
-
+    # print(data)  # Optional: For debugging purposes
     return JsonResponse(data, safe=False)  # Return data as a JsonResponse
 
 def insert_user_log(user_id):
