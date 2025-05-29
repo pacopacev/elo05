@@ -23,15 +23,52 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
+
     def post(self, request, *args, **kwargs):
+        #print(2)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        #print(3)
+
+
         user = serializer.save()
+        self.initial_menu_for_new_registered_user(user)
+        #print(4)
+
+
         token, created = Token.objects.get_or_create(user=user)
         return Response({
             'user': serializer.data,
             'token': token.key
         }, status=status.HTTP_201_CREATED)
+
+    def initial_menu_for_new_registered_user(self, user):
+        #print(user)
+        if user:
+            query_get_user_id = "SELECT id FROM auth_user WHERE username = %s"
+            # print(query_get_user_id)
+            data = GlobalModel.fetch_data_from_db(query_get_user_id, [user.username])
+            user_id = data[0]['id']
+            defult_menus = [19, 22]
+            total_rows = 0
+
+            for menu_id in defult_menus:
+                insert_params = {
+                    'user_id': user_id,
+                    'menu_id': menu_id,
+                    'created_at': timezone.now()  # Prefer Django's timezone-aware datetime
+                }
+                rows_inserted = GlobalModel.insert_query('user_access', insert_params)
+                total_rows += rows_inserted
+                print(total_rows)
+
+
+
+
+
+
+
+
 
 
 class LoginView(generics.GenericAPIView):

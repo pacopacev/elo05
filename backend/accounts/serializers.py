@@ -17,6 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         Token.objects.create(user=user)
+
         return user
 
 class MenuSerializer(serializers.Serializer):

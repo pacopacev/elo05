@@ -43,11 +43,13 @@ const FollowUpForm = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2 }}>
-      <Typography variant="h5" gutterBottom>Injection Molding Follow-up</Typography>
+    <Box sx={{ maxWidth: 1045, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: 'white' }}>
+      <Typography variant="h5" gutterBottom>Add Menu</Typography>
 
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
+      <Grid container direction="column" spacing={2}>
+        <Grid container direction="row" spacing={2}>
+
           <Grid item xs={12}>
             <TextField
               label="Product Code"
@@ -98,15 +100,100 @@ const FollowUpForm = () => {
               onChange={handleChange}
               fullWidth
               multiline
-              rows={3}
+              rows={1}
             />
           </Grid>
 
-          <Grid item xs={12} textAlign="right">
-            <Button variant="contained" type="submit" color="primary">
-              Submit
-            </Button>
+
+
+        </Grid>
+
+        <Grid container direction="row" spacing={2}>
+
+          <Grid item xs={12}>
+            <TextField
+              label="Product Code"
+              name="productCode"
+              value={formData.productCode}
+              onChange={handleChange}
+              fullWidth
+              required
+            />
           </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              label="Machine Number"
+              name="machineNumber"
+              value={formData.machineNumber}
+              onChange={handleChange}
+              fullWidth
+              required
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              label="Operator"
+              name="operator"
+              value={formData.operator}
+              onChange={handleChange}
+              fullWidth
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              label="Shift"
+              name="shift"
+              value={formData.shift}
+              onChange={handleChange}
+              fullWidth
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              label="Additional Notes"
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              fullWidth
+              multiline
+              rows={1}
+            />
+          </Grid>
+
+
+
+        </Grid>
+
+         <Grid container direction="row" spacing={2} justifyContent="flex-end">
+
+
+
+            <Grid item xs={12} textAlign="right">
+
+            <Button variant="contained" type="submit" color="warning">
+              Cancel
+            </Button>
+
+          </Grid>
+
+
+             <Grid item xs={12} textAlign="right">
+
+            <Button variant="contained" type="submit" color="success">
+              Save
+            </Button>
+
+          </Grid>
+
+
+
+
+         </Grid>
+
         </Grid>
       </form>
 
