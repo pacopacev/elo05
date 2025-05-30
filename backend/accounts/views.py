@@ -17,6 +17,8 @@ from core.request import get_user_id
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 
+# user_id = get_user_id()
+
 
 
 class RegisterView(generics.CreateAPIView):
@@ -49,7 +51,7 @@ class RegisterView(generics.CreateAPIView):
             # print(query_get_user_id)
             data = GlobalModel.fetch_data_from_db(query_get_user_id, [user.username])
             user_id = data[0]['id']
-            defult_menus = [19, 22]
+            defult_menus = [3, 5]
             total_rows = 0
 
             for menu_id in defult_menus:
@@ -181,6 +183,16 @@ def del_user_log(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
+def get_your_account(request):
+    user_id = get_user_id()
+
+    data = {
+        "username": user_id,
+        "email": "user.email",
+        "first_name": "user.first_name",
+        "last_name": "user.last_name",
+    }
+    return JsonResponse(data)
 
 
 
