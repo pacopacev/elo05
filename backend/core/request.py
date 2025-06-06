@@ -15,3 +15,4 @@ def get_user_id():
         raise PermissionDenied("User not authenticated")
     # print(request.user.id)
     return request.user.id
+

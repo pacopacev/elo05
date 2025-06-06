@@ -4,18 +4,19 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User  # Add this import
+#from django.contrib.auth.models import User  # Add this import
 from .serializers import UserSerializer
 from global_model import GlobalModel
 from django.db import connection
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+#from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
+#from rest_framework.authentication import SessionAuthentication
 from core.request import get_user_id
 from django.http import JsonResponse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from django.contrib.auth.decorators import login_required
 
 # user_id = get_user_id()
 
@@ -183,16 +184,35 @@ def del_user_log(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-def get_your_account(request):
-    user_id = get_user_id()
 
-    data = {
-        "username": user_id,
-        "email": "user.email",
-        "first_name": "user.first_name",
-        "last_name": "user.last_name",
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user(request):
+    data = GlobalModel.get_logged_user()
+    return Response(data)
+
+@api_view(['POST'])
+def update_account_info(request):
+    id = request.data.get('id')
+    where = {
+        'id': id,
     }
-    return JsonResponse(data)
+    if not id:
+        return JsonResponse({'status': 'error', 'message': 'user_id is required'}, status=400)
+    # Prepare the raw SQL query to delete the user log
+    try:
+        # Example: Update email and username where id=5
+        updated_rows = GlobalModel.update_query(
+            table='auth_user',
+            updates={'username': request.data.get('username'), 'email': request.data.get('email')},
+            where={'id': id}
+        )
+        print(f"{updated_rows} rows updated")
+        return JsonResponse({'status': 'success', 'message': f'User log with id {id} deleted successfully'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
 
 
 

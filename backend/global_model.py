@@ -1,7 +1,12 @@
 from datetime import datetime
 from django.db import connection, DatabaseError
+from core.request import get_user_id, get_request
+from rest_framework.permissions import IsAuthenticated
 
-from rest_framework.exceptions import NotAuthenticated
+from accounts.serializers import UserSerializer
+from django.contrib.auth.decorators import login_required
+
+# from rest_framework.exceptions import NotAuthenticated
 
 
 
@@ -58,3 +63,40 @@ class GlobalModel:
         except DatabaseError as e:
             print(f"Database error during delete: {e}")
             raise
+
+    def update_query(table: str, updates: dict, where: dict):
+        """
+        Dynamically builds and executes an UPDATE SQL query.
+
+        Args:
+            table (str): Table name.
+            updates (dict): Columns and their new values.
+            where (dict): WHERE clause conditions.
+
+        Returns:
+            int: Number of rows updated.
+        """
+        if not table or not updates or not where:
+            raise ValueError("Table name, updates, and where clause are required")
+
+        set_clause = ', '.join([f"{col} = %s" for col in updates.keys()])
+        where_clause = ' AND '.join([f"{col} = %s" for col in where.keys()])
+        values = list(updates.values()) + list(where.values())
+
+        query = f"UPDATE {table} SET {set_clause} WHERE {where_clause}"
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(query, values)
+                return cursor.rowcount  # Number of rows updated
+        except DatabaseError as e:
+            print(f"Database error during update: {e}")
+            raise
+
+    @staticmethod
+    def get_logged_user():
+        request = get_request()
+        user = request.user
+        serializer = UserSerializer(user)
+        return serializer.data
+
