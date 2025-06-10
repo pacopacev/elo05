@@ -21,7 +21,7 @@ const YourAccountComponent = () => {
     email: '',
     date_joined: '',
     date_joined_readable: '',
-    image: '',
+    avatar: '',
   });
 
   const [preview, setPreview] = useState(logo);
@@ -70,11 +70,11 @@ const YourAccountComponent = () => {
       setFormData({
         ...data,
         date_joined_readable: readable,
-        image: data.image || '',
+        image: data.avatar || '',
       });
 
-      if (data.image) {
-        setPreview(data.image);
+      if (data.avatar) {
+        setPreview(data.avatar);
       } else {
         setPreview(logo);
       }
@@ -102,7 +102,7 @@ const YourAccountComponent = () => {
       formPayload.append('username', formData.username);
       formPayload.append('email', formData.email);
       if (imageFile) {
-        formPayload.append('image', imageFile);
+        formPayload.append('file', imageFile);
       }
 
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/your_account/update/`, {
@@ -142,7 +142,7 @@ const YourAccountComponent = () => {
 
   return (
     <Box sx={{ maxWidth: 840, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: 'white' }}>
-      <Typography variant="h5" gutterBottom>Your Profile</Typography>
+      <Typography variant="h5" className="custom-font" gutterBottom>Your Profile</Typography>
 
       {error && <Alert severity="error">{error}</Alert>}
 
@@ -208,15 +208,7 @@ const YourAccountComponent = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
-              <TextField
-                label="Profile Picture URL"
-                name="image"
-                value={formData.image}
-                InputProps={{ readOnly: true }}
-                fullWidth
-              />
-            </Grid>
+          
           </Grid>
 
           <Grid container direction="row" spacing={2} justifyContent="flex-end">

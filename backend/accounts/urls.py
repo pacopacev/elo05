@@ -9,6 +9,7 @@ from accounts.views import del_user_log
 from accounts.views import update_account_info
 from accounts.views import get_user
 
+
 urlpatterns = [
     # path('admin/', admin.site.urls),
     path('api/register/', RegisterView.as_view(), name='register'),
@@ -19,5 +20,6 @@ urlpatterns = [
     path('api/del_log/', del_user_log, name='del-log'),
     path('api/your_account/', get_user, name='get-your-account'),
     path('api/your_account/update/', update_account_info, name='update-your-account'),
+
 
 ]

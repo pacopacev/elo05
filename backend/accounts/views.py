@@ -4,19 +4,21 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
-#from django.contrib.auth.models import User  # Add this import
 from .serializers import UserSerializer
 from global_model import GlobalModel
 from django.db import connection
 from rest_framework.views import APIView
-#from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-#from rest_framework.authentication import SessionAuthentication
 from core.request import get_user_id
 from django.http import JsonResponse
 from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth.decorators import login_required
+import os
+from datetime import datetime
+from django.conf import settings
+from .models import UploadedImage
+from django.contrib.auth.models import User
 
 # user_id = get_user_id()
 
@@ -193,26 +195,48 @@ def get_user(request):
 
 @api_view(['POST'])
 def update_account_info(request):
-    id = request.data.get('id')
-    where = {
-        'id': id,
-    }
-    if not id:
+    user_id = request.data.get('id')
+
+    if not user_id:
         return JsonResponse({'status': 'error', 'message': 'user_id is required'}, status=400)
-    # Prepare the raw SQL query to delete the user log
+
     try:
-        # Example: Update email and username where id=5
-        updated_rows = GlobalModel.update_query(
+        # Update user basic info
+        GlobalModel.update_query(
             table='auth_user',
-            updates={'username': request.data.get('username'), 'email': request.data.get('email')},
-            where={'id': id}
+            updates={
+                'username': request.data.get('username'),
+                'email': request.data.get('email')
+            },
+            where={'id': user_id}
         )
-        print(f"{updated_rows} rows updated")
-        return JsonResponse({'status': 'success', 'message': f'User log with id {id} deleted successfully'})
+
+        # Handle image upload
+        file = request.FILES.get('file')
+        if file:
+            # Save file manually to D:\elo05_uploaded_images\user_<id>\
+            upload_dir = os.path.join('D:/elo05_uploaded_images', f'user_{user_id}')
+            os.makedirs(upload_dir, exist_ok=True)
+
+            file_path = os.path.join(upload_dir, file.name)
+            with open(file_path, 'wb+') as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
+
+            # Save file path to DB
+            UploadedImage.objects.create(
+                file=file_path,
+                user_id=user_id
+            )
+
+        return JsonResponse({'status': 'success', 'message': 'User info updated successfully.'})
+
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
 
-
+ 
+        
 
 
 

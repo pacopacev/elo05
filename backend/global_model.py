@@ -1,10 +1,13 @@
 from datetime import datetime
+import os
+from django.conf import settings
 from django.db import connection, DatabaseError
 from core.request import get_user_id, get_request
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.serializers import UserSerializer
 from django.contrib.auth.decorators import login_required
+from accounts.models import UploadedImage
 
 # from rest_framework.exceptions import NotAuthenticated
 
@@ -92,11 +95,33 @@ class GlobalModel:
         except DatabaseError as e:
             print(f"Database error during update: {e}")
             raise
+    
+    @staticmethod
+    def get_avatar(user):
+        try:
+            image = UploadedImage.objects.filter(user_id=user.id).latest('uploaded_at')
+            return str(image.file.path)  # ✅ Convert ImageFieldFile to string path
+        except UploadedImage.DoesNotExist:
+            return None
 
     @staticmethod
     def get_logged_user():
         request = get_request()
         user = request.user
-        serializer = UserSerializer(user)
-        return serializer.data
 
+        avatar_path = GlobalModel.get_avatar(user)
+        print("Avatar path:", avatar_path)
+
+        serializer = UserSerializer(user)
+        user_data = serializer.data
+
+        if avatar_path:
+            relative_path = os.path.relpath(avatar_path, settings.MEDIA_ROOT)
+            avatar_url = request.build_absolute_uri(settings.MEDIA_URL + relative_path.replace('\\', '/'))
+            user_data['avatar'] = avatar_url
+        else:
+            user_data['avatar'] = None
+
+        return user_data
+    
+    
