@@ -8,13 +8,13 @@ const UsersTablePage = () => {
 
   const fetchData = async () => {
     const token = localStorage.getItem('authToken');
-    return await apiRequest('GET', 'http://localhost:8000/api/user_log/', {}, { token });
+    return await apiRequest('GET', `${process.env.REACT_APP_API_BASE_URL}/api/user_log/`, {}, { token });
   };
 
   const handleDelete = async (id) => {
     const token = localStorage.getItem('authToken');
     try {
-      const data = await apiRequest('POST', 'http://localhost:8000/api/del_log/', { sequence_id: id }, { token });
+      const data = await apiRequest('POST', `${process.env.REACT_APP_API_BASE_URL}/api/del_log/`, { sequence_id: id }, { token });
       console.log('Deleted:', data);
 
       setSnackbar({ open: true, message: 'Log deleted successfully.', severity: 'success' });

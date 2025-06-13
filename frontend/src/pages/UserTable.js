@@ -25,7 +25,7 @@ const UsersTablePage = () => {
 
   const fetchData = async () => {
     const token = localStorage.getItem('authToken');
-    return await apiRequest('GET', 'http://localhost:8000/api/users/', {}, { token });
+    return await apiRequest('GET', `${process.env.REACT_APP_API_BASE_URL}/api/users/`, {}, { token });
   };
 
   return(

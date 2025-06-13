@@ -40,10 +40,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: don't run with debug turned on in production!
 
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', 'elo05.com','192.168.1.62']
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3002',
+    'http://localhost:3002', 'http://elo05.com'
 ]
 
 # Application definition
@@ -97,11 +97,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", # or wherever your React app runs
-]
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -124,11 +120,26 @@ REST_FRAMEWORK = {
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOW_CREDENTIALS = True
+
+
 # For production, use:
-CORS_ALLOWED_ORIGINS = ["http://localhost:8080",
+CORS_ALLOWED_ORIGINS = [
                         "http://127.0.0.1:8080",
                         "http://localhost:3000",
+                        "http://elo05.com",
+                        "http://192.168.1.80",
+                        "http://localhost:8080"
                         ]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -162,7 +173,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

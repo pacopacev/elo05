@@ -13,7 +13,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true); // Start loading
 
-    const res = await fetch('http://localhost:8000/api/login/', {
+    const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/login/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

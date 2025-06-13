@@ -8,24 +8,37 @@ const Sidebar = () => {
 
 useEffect(() => {
   const token = localStorage.getItem('authToken');
-  if (token) {
-    fetch('http://localhost:8000/api/menu/', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Token ${token}`, // Send the token in the Authorization header
-      },
-    })
-      .then(res => res.json())
-      .then(data => {
-        setMenuData(data);
-      })
-      .catch(error => console.error('Error:', error));
-  } else {
-    console.log('No token found!');
-    // Handle the absence of token (e.g., redirect to login page)
+  
+  if (!token) {
+    console.warn('No token found!');
+    // Optionally: redirect to login
+    return;
   }
+
+  fetch(`${process.env.REACT_APP_API_BASE_URL}/api/menu/`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Token ${token}`,
+    },
+  })
+    .then(async res => {
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Failed to fetch menu. Status:', res.status, errorText);
+        throw new Error('Unauthorized or server error');
+      }
+      return res.json();
+    })
+    .then(data => {
+      setMenuData(data);
+    })
+    .catch(error => {
+      console.error('Error fetching menu:', error);
+      // Optional: redirect to login or show error UI
+    });
 }, []);
+
 
   const toggleMenu = (id) => {
     setOpenMenu(openMenu === id ? null : id);
