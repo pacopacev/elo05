@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import platform
 
 
 def load_env():
@@ -30,14 +31,6 @@ os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')  # List of allowed 
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-
-
-# SECURITY WARNING: don't run with debug turned on in production!
 
 
 ALLOWED_HOSTS = ['*', 'elo05.com','192.168.1.62']
@@ -183,4 +176,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = r'D:\elo05_uploaded_images'
+#MEDIA_ROOT = r'D:\elo05_uploaded_images'
+
+current_platform = platform.system()
+print(current_platform)
+
+# Set MEDIA_ROOT based on the platform
+if current_platform == 'Windows':
+    MEDIA_ROOT = r'D:\elo05_uploaded_images'
+else:  # Linux, macOS, etc.
+    MEDIA_ROOT = '/home/test/liPictures'  # Change this to your desired path
