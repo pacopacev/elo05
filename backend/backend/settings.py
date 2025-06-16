@@ -185,4 +185,4 @@ print(current_platform)
 if current_platform == 'Windows':
     MEDIA_ROOT = r'D:\elo05_uploaded_images'
 else:  # Linux, macOS, etc.
-    MEDIA_ROOT = '/home/test/liPictures'  # Change this to your desired path
+    MEDIA_ROOT = '/home/test/Pictures'  # Change this to your desired path
