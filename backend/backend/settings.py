@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ALLOWED_HOSTS = ['*', 'elo05.com','192.168.1.80']
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3002', 'http://elo05.com'
+    'http://localhost:3000', 'http://elo05.com'
 ]
 
 # Application definition
@@ -46,6 +46,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    
+    'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # This should be here
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -53,8 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-'core.middleware.GlobalRequestMiddleware',
+    'core.middleware.GlobalRequestMiddleware',
 
 ]
 
@@ -104,15 +107,36 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 CORS_ALLOW_CREDENTIALS = True
 
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+
 
 # For production, use:
 CORS_ALLOWED_ORIGINS = [
-                        "http://127.0.0.1:8080",
-                        "http://localhost:3000",
-                        "http://elo05.com",
-                        "http://192.168.1.80",
-                        "http://localhost:8080"
-                        ]
+    "http://127.0.0.1:8000",
+    "http://localhost:3000",
+    "http://elo05.com",
+    "http://192.168.1.80",
+    "http://localhost:8000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'x-csrftoken',
+]
 
 CORS_ALLOW_METHODS = [
     "GET",

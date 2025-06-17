@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import UniversalTable from '../components/UniversalTable';
 import { apiRequest } from '../utils/api';
 import { 
@@ -23,36 +24,36 @@ const UsersTablePage = () => {
   });
   const [deleteDialog, setDeleteDialog] = useState({ 
     open: false, 
-    id: null 
+    id: null,
+    deleting: false  // Track if deletion is in progress
   });
-  const [isLoading, setIsLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   // API call to fetch data
-  const fetchData = async () => {
-    const token = localStorage.getItem('authToken');
-    try {
-      const response = await apiRequest(
-        'GET', 
-        `${process.env.REACT_APP_API_BASE_URL}/api/user_log/`, 
-        {}, 
-        { token }
-      );
-      return Array.isArray(response) ? response : [];
-    } catch (error) {
-      console.error('Fetch failed:', error.message);
-      setSnackbar({ 
-        open: true, 
-        message: 'Failed to fetch logs.', 
-        severity: 'error' 
-      });
-      return [];
-    }
-  };
+ const fetchData = useCallback(async () => {
+  const token = localStorage.getItem('authToken');
+  try {
+    const response = await apiRequest(
+      'GET',
+      `${process.env.REACT_APP_API_BASE_URL}/api/user_log/`,
+      {},
+      { token }
+    );
+    return Array.isArray(response) ? response : [];
+  } catch (error) {
+    console.error('Fetch failed:', error.message);
+    setSnackbar({
+      open: true,
+      message: 'Failed to fetch logs.',
+      severity: 'error'
+    });
+    return [];
+  }
+}, []);
 
   // Handle delete confirmation
   const handleDelete = async () => {
-    setIsLoading(true);
+    setDeleteDialog(prev => ({ ...prev, deleting: true }));
     const token = localStorage.getItem('authToken');
     try {
       await apiRequest(
@@ -66,7 +67,7 @@ const UsersTablePage = () => {
         message: 'Log deleted successfully.', 
         severity: 'success' 
       });
-      setRefreshKey(prev => prev + 1); // Trigger table refresh
+      setRefreshKey(prev => prev + 1);
     } catch (error) {
       console.error('Delete failed:', error.message);
       setSnackbar({ 
@@ -75,8 +76,7 @@ const UsersTablePage = () => {
         severity: 'error' 
       });
     } finally {
-      setIsLoading(false);
-      setDeleteDialog({ open: false, id: null });
+      setDeleteDialog({ open: false, id: null, deleting: false });
     }
   };
 
@@ -116,36 +116,30 @@ const UsersTablePage = () => {
           size="small"
           onClick={() => setDeleteDialog({ 
             open: true, 
-            id: row.original.id 
+            id: row.original.id,
+            deleting: false
           })}
-          disabled={isLoading}
         >
           Delete
         </Button>
       ),
     }
-  ], [isLoading]);
+  ], []);
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold text-center mb-6">Auth User Log</h1>
       
-      {isLoading ? (
-        <Box display="flex" justifyContent="center" p={4}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <UniversalTable 
-          key={refreshKey}
-          columns={columns} 
-          fetchData={fetchData} 
-        />
-      )}
+<UniversalTable 
+  columns={columns}
+  fetchData={fetchData}
+  refreshTrigger={refreshKey}
+/>
 
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialog.open}
-        onClose={() => !isLoading && setDeleteDialog({ open: false, id: null })}
+        onClose={() => !deleteDialog.deleting && setDeleteDialog({ open: false, id: null, deleting: false })}
       >
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
@@ -155,8 +149,8 @@ const UsersTablePage = () => {
         </DialogContent>
         <DialogActions>
           <Button 
-            onClick={() => setDeleteDialog({ open: false, id: null })}
-            disabled={isLoading}
+            onClick={() => setDeleteDialog({ open: false, id: null, deleting: false })}
+            disabled={deleteDialog.deleting}
           >
             Cancel
           </Button>
@@ -164,9 +158,10 @@ const UsersTablePage = () => {
             onClick={handleDelete}
             color="error"
             variant="contained"
-            disabled={isLoading}
+            disabled={deleteDialog.deleting}
+            startIcon={deleteDialog.deleting ? <CircularProgress size={20} /> : null}
           >
-            {isLoading ? 'Deleting...' : 'Delete'}
+            {deleteDialog.deleting ? 'Deleting...' : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

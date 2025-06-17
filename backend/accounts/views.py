@@ -1,4 +1,10 @@
 # accounts/views.py
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -76,23 +82,52 @@ class RegisterView(generics.CreateAPIView):
 
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
-
-
+    
+    def options(self, request, *args, **kwargs):
+        """
+        Handle OPTIONS preflight requests
+        """
+        response = Response()
+        response['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+        response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        response['Access-Control-Allow-Credentials'] = 'true'
+        response['Access-Control-Max-Age'] = '86400'
+        return response
+    
     def post(self, request, *args, **kwargs):
+        """
+        Handle login requests with proper CORS headers
+        """
+        # Handle preflight for some browsers
+        if request.method == 'OPTIONS':
+            return self.options(request, *args, **kwargs)
+            
         username = request.data.get('username')
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
+        
         if user:
             token, created = Token.objects.get_or_create(user=user)
             insert_user_log(user.pk)
-            return Response({
+            response = Response({
                 'token': token.key,
                 'user_id': user.pk,
                 'username': user.username
             })
-        return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            response = Response(
+                {'error': 'Invalid Credentials'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Add CORS headers to response
+        response['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+        response['Access-Control-Allow-Credentials'] = 'true'
+        return response
 
 class MenuListView(APIView, GlobalModel):
     # authentication_classes = [SessionAuthentication]
