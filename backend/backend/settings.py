@@ -1,35 +1,42 @@
-
 from pathlib import Path
 import os
-from dotenv import load_dotenv
 import platform
+from dotenv import load_dotenv
 
-
-def load_env():
-    with open('.env') as f:
-        for line in f:
-            # Ignore comments and empty lines
-            if line.strip() and not line.startswith('#'):
-                key, value = line.strip().split('=', 1)
-                os.environ[key] = value
-
-
-SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG')
-os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')  # List of allowed hosts
+# ✅ Load environment variables early
 load_dotenv()
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+# ✅ Build base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ✅ Platform-specific media directory
+current_platform = platform.system()
+if current_platform == 'Windows':
+    MEDIA_ROOT = r'D:\elo05_uploaded_images'
+else:
+    MEDIA_ROOT = '/home/test/Pictures'
 
-ALLOWED_HOSTS = ['*', 'elo05.com','192.168.1.80']
+# ✅ Core settings
+SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret')
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000', 'http://elo05.com'
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '192.168.1.80',
+    'elo05.com',
+    'www.elo05.com'
 ]
 
-# Application definition
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://elo05.com',
+    'http://localhost:8000',
+]
 
+# ✅ Installed apps
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,19 +44,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # 3rd-party
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-    'backend.settings',
+
+    # Your apps
     'accounts',
-    'flowbit'
+    'flowbit',
 ]
 
+# ✅ Middleware
 MIDDLEWARE = [
-    
-    'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # This should be here
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -57,8 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.middleware.GlobalRequestMiddleware',
-
+    'core.middleware.GlobalRequestMiddleware',  # If this is custom, keep it
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -80,9 +87,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+# ✅ Database (from .env)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -90,35 +95,31 @@ DATABASES = {
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT', '25464'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
-# Authentication
+
+# ✅ REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-'DEFAULT_PERMISSION_CLASSES': [
+    'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
-# CORS
-CORS_ALLOW_ALL_ORIGINS = True  # For development only
+# ✅ CORS settings (development-friendly)
+CORS_ALLOW_ALL_ORIGINS = True  # WARNING: Only for dev
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SECURE = False
-
-
-# For production, use:
 CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:8000",
     "http://localhost:3000",
-    "http://elo05.com",
-    "http://192.168.1.80",
-    "http://localhost:8000",
     "http://127.0.0.1:3000",
+    "http://192.168.1.80:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://elo05.com",
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -147,9 +148,7 @@ CORS_ALLOW_METHODS = [
     "OPTIONS",
 ]
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
+# ✅ Password validators
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -165,37 +164,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
+# ✅ Locale
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
+# ✅ Static + Media
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 MEDIA_URL = '/media/'
-#MEDIA_ROOT = r'D:\elo05_uploaded_images'
 
-current_platform = platform.system()
-print(current_platform)
-
-# Set MEDIA_ROOT based on the platform
-if current_platform == 'Windows':
-    MEDIA_ROOT = r'D:\elo05_uploaded_images'
-else:  # Linux, macOS, etc.
-    MEDIA_ROOT = '/home/test/Pictures'  # Change this to your desired path
+# ✅ Primary key config
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
