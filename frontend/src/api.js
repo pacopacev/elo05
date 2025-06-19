@@ -1,1 +1,1 @@
-baseURL: "http://elo05.com/api/"
+baseURL: "http://elo05.com"
