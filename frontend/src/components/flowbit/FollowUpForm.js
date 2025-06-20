@@ -8,14 +8,13 @@ import {
   Snackbar,
   Alert
 } from '@mui/material';
-
+const [error, setError] = useState(null);
+const [loading, setLoading] = useState(true);
 const FollowUpForm = () => {
   const [formData, setFormData] = useState({
-    productCode: '',
-    machineNumber: '',
-    operator: '',
-    shift: '',
-    notes: ''
+    product_code: '',
+    product_name: '',
+    description: '',
   });
 
   const [snackbar, setSnackbar] = useState({
@@ -29,171 +28,134 @@ const FollowUpForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+
+  //   // You can add API call here
+  //   console.log('Submitted Data:', formData);
+
+  //   setSnackbar({
+  //     open: true,
+  //     message: 'Form submitted successfully!',
+  //     severity: 'success'
+  //   });
+  // };
+
+  const cardStyles = {
+    maxWidth: 440,
+    mx: 'auto',      // margin left & right: auto (centers the card)
+    mt: 4,           // margin-top: 32px (MUI spacing * 4)
+    p: 3,            // padding: 24px (MUI spacing * 3)
+    boxShadow: 3,    // medium shadow (MUI shadow scale)
+    borderRadius: 2, // border-radius: 8px
+    bgcolor: 'white' // background color
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // You can add API call here
-    console.log('Submitted Data:', formData);
+    try {
+      const token = localStorage.getItem('authToken');
 
-    setSnackbar({
-      open: true,
-      message: 'Form submitted successfully!',
-      severity: 'success'
-    });
+      const formPayload = new FormData();
+      formPayload.append('id', formData.id);
+      formPayload.append('username', formData.username);
+      formPayload.append('email', formData.email);
+
+
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/your_account/update/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${token}`,
+        },
+        body: formPayload,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update account data');
+      }
+
+      await response.json();
+
+      setSnackbar({
+        open: true,
+        message: 'Account updated successfully!',
+        severity: 'success',
+      });
+
+      await fetchData();
+    } catch (error) {
+      console.error('Update error:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to update account.',
+        severity: 'error',
+      });
+    }
+  };
+
+  const handleCancel = () => {
+    navigate('..');
   };
 
   return (
-    <Box sx={{ maxWidth: 1045, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: 'white' }}>
-      <Typography variant="h5" gutterBottom>Add Menu</Typography>
-
+    <Box sx={cardStyles}>
+      <Typography variant="h5" gutterBottom>Add Product</Typography>
       <form onSubmit={handleSubmit}>
-      <Grid container direction="column" spacing={2}>
-        <Grid container direction="row" spacing={2}>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Product Code"
-              name="productCode"
-              value={formData.productCode}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
+        <Grid container direction="column" spacing={2}>
+          <Grid container direction="row" spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label="Product Code"
+                name="product_code"
+                value={formData.product_code}
+                onChange={handleChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Product Name"
+                name="product_name"
+                value={formData.product_name}
+                onChange={handleChange}
+                fullWidth
+                required
+              />
+            </Grid>
           </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Machine Number"
-              name="machineNumber"
-              value={formData.machineNumber}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
+          <Grid container direction="row" spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label="Description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                fullWidth
+                multiline
+                rows={1}
+                slotProps={{
+                  input: {
+                    maxLength: 5,
+                  },
+                }}
+                style={{ width: '390px' }}  // fixed width
+              />
+            </Grid>
           </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Operator"
-              name="operator"
-              value={formData.operator}
-              onChange={handleChange}
-              fullWidth
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Shift"
-              name="shift"
-              value={formData.shift}
-              onChange={handleChange}
-              fullWidth
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Additional Notes"
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={1}
-            />
-          </Grid>
-
-
-
-        </Grid>
-
-        <Grid container direction="row" spacing={2}>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Product Code"
-              name="productCode"
-              value={formData.productCode}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Machine Number"
-              name="machineNumber"
-              value={formData.machineNumber}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Operator"
-              name="operator"
-              value={formData.operator}
-              onChange={handleChange}
-              fullWidth
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Shift"
-              name="shift"
-              value={formData.shift}
-              onChange={handleChange}
-              fullWidth
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Additional Notes"
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={1}
-            />
-          </Grid>
-
-
-
-        </Grid>
-
-         <Grid container direction="row" spacing={2} justifyContent="flex-end">
-
-
-
+          <Grid container direction="row" spacing={2} justifyContent="flex-end">
             <Grid item xs={12} textAlign="right">
-
-            <Button variant="contained" type="submit" color="warning">
-              Cancel
-            </Button>
-
+              <Button variant="contained" onClick={handleCancel} color="warning">
+                Cancel
+              </Button>
+            </Grid>
+            <Grid item xs={12} textAlign="right">
+              <Button variant="contained" type="submit" color="success" disabled={loading}>
+                Save
+              </Button>
+            </Grid>
           </Grid>
-
-
-             <Grid item xs={12} textAlign="right">
-
-            <Button variant="contained" type="submit" color="success">
-              Save
-            </Button>
-
-          </Grid>
-
-
-
-
-         </Grid>
-
         </Grid>
       </form>
 

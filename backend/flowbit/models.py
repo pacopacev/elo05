@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User  # Add this import
+from django.utils.timezone import now
 
 class Machine(models.Model):
     name = models.CharField(max_length=50)
@@ -18,9 +20,12 @@ class Operator(models.Model):
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=100)
+    product_name = models.CharField(max_length=100)
     product_code = models.CharField(max_length=30)
-    cavity_count = models.PositiveIntegerField()
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=now)  # temporary default
+    updated_at = models.DateTimeField(auto_now=True)
+    create_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.name
