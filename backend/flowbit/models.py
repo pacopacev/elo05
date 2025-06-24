@@ -1,62 +1,99 @@
 from django.db import models
-from django.contrib.auth.models import User  # Add this import
+from django.contrib.auth.models import User
 from django.utils.timezone import now
+from django.core.files.storage import FileSystemStorage
+import platform
+import os
+from django.conf import settings
 
-class Machine(models.Model):
-    name = models.CharField(max_length=50)
-    code = models.CharField(max_length=20, unique=True)
-    status = models.CharField(max_length=20, choices=[('available', 'Available'), ('maintenance', 'Under Maintenance')])
+# ====== STORAGE DEFINITIONS FIRST ======
+# Platform-specific settings
+current_platform = platform.system()
+PRODUCT_IMAGES_ROOT = r'D:\elo05_product_images' if current_platform == 'Windows' else '/home/test/product_images'
+os.makedirs(PRODUCT_IMAGES_ROOT, exist_ok=True)
 
-    def __str__(self):
-        return self.name
+class ProductImageStorage(FileSystemStorage):
+    def __init__(self, location=None, base_url=None):
+        if location is None:
+            location = PRODUCT_IMAGES_ROOT
+        super().__init__(location=location, base_url=base_url)
 
+# ====== PATH FUNCTION ======
+def product_image_directory_path(instance, filename):
+    """File will be uploaded to PRODUCT_IMAGES_ROOT/product_<id>/<filename>"""
+    return f'product_{instance.product_id}/{filename}'
 
-class Operator(models.Model):
-    name = models.CharField(max_length=100)
-    employee_id = models.CharField(max_length=20)
-
-    def __str__(self):
-        return self.name
-
-
+# ====== MODELS ======
 class Product(models.Model):
-    product_name = models.CharField(max_length=100)
-    product_code = models.CharField(max_length=30)
+    name = models.CharField('Product Name', max_length=100)
+    code = models.CharField('Product Code', max_length=30, unique=True)
     description = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(default=now)  # temporary default
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    create_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='products_created',
+        verbose_name='Created By'
+    )
 
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'Product'
+        verbose_name_plural = 'Products'
+        ordering = ['-created_at']
 
-class MoldingSession(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    machine = models.ForeignKey(Machine, on_delete=models.CASCADE)
-    operator = models.ForeignKey(Operator, on_delete=models.SET_NULL, null=True)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField(null=True, blank=True)
-    shift = models.CharField(max_length=10, choices=[('A', 'Shift A'), ('B', 'Shift B'), ('C', 'Shift C')])
+class ProductImage(models.Model):
+    file = models.ImageField(
+        upload_to=product_image_directory_path,
+        storage=ProductImageStorage(),
+        verbose_name='Image File'
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='images',
+        verbose_name='Product'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='product_images',
+        verbose_name='Created By'
+    )
 
     def __str__(self):
-        return f"{self.product.name} on {self.machine.name} - {self.start_time}"
+        return f"Image {self.id} for Product {self.product_id}"
 
-
-class ProcessParameter(models.Model):
-    session = models.ForeignKey(MoldingSession, on_delete=models.CASCADE)
-    temperature = models.DecimalField(max_digits=6, decimal_places=2)
-    pressure = models.DecimalField(max_digits=6, decimal_places=2)
-    cycle_time = models.DecimalField(max_digits=5, decimal_places=2)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-
-class DefectLog(models.Model):
-    session = models.ForeignKey(MoldingSession, on_delete=models.CASCADE)
-    defect_type = models.CharField(max_length=100)
-    quantity = models.PositiveIntegerField()
-    remarks = models.TextField(blank=True, null=True)
-    logged_at = models.DateTimeField(auto_now_add=True)
-from django.db import models
-
-# Create your models here.
+    class Meta:
+        db_table = 'flowbit_productimage'
+        verbose_name = 'Product Image'
+        verbose_name_plural = 'Product Images'
+        ordering = ['-created_at']
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+ 

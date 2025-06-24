@@ -8,10 +8,10 @@ import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
-import YourAccount from './components/YourAccountComponent';
+// import YourAccount from './components/YourAccountComponent';
 
 
-import FollowUpForm from './components/flowbit/FollowUpForm';
+// import FollowUpForm from './components/flowbit/FollowUpForm';
 
 
 
@@ -22,7 +22,7 @@ import UserTable from './pages/UserTable';
 import UserLogTable from './pages/UserLogTable';
 import YourAccountPage from './pages/YourAccountPage';
 
-import FollowUpPage from './pages/flowbit/FollowUpPage';
+import AddProductPage from './pages/flowbit/AddProductPage';
 
 
 
@@ -50,7 +50,7 @@ function App() {
 //          <Route index element={<MainPage />} /> {/* Default content inside dashboard */}
 
 
-          <Route path="add" element={<FollowUpPage />} />
+          <Route path="add_product" element={<AddProductPage />} />
 
 </Route>
         <Route path="/account" element={<Dashboard />}>

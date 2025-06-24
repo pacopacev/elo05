@@ -1,15 +1,17 @@
 from django.urls import path
 from . import views  # or from flowbit import views if needed
-
-# urlpatterns = [
-#     # Example route
-#     path('', views.index, name='flowbit-home'),
-# ]
-
-from rest_framework.routers import DefaultRouter
 from .views import ProductViewSet
 
-router = DefaultRouter()
-router.register(r'api/flowbit/save_product/', ProductViewSet)
+urlpatterns = [
+    # Example route
+    path('api/flowbit/add_product/', ProductViewSet.as_view({'post': 'create'}), name='flowbit-add_product'),
+]
 
-urlpatterns = router.urls
+# from rest_framework.routers import DefaultRouter
+# from .views import ProductViewSet
+
+# router = DefaultRouter()
+# router.register(r'api/flowbit/add_product/', ProductViewSet)
+
+
+# urlpatterns = router.urls

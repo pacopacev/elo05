@@ -1,5 +1,48 @@
-.custom-font {
-  font-family: 'Georgia', serif;
-  font-size: 32px;
-  /* color: red */
+
+
+/* @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap'); */
+
+
+/* Base Roboto setup */
+
+
+
+
+
+.erp-font {
+  font-family: 'Roboto', sans-serif;
+  color: #2D3748; /* Professional dark gray */
+}
+
+/* Heading variants */
+.erp-font-heading {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 500;  /* Medium */
+  line-height: 1.3;
+}
+
+.erp-font-title {
+  font-size: 2rem;   /* 32px */
+  font-weight: 500;
+}
+
+/* Data/text variants */
+.erp-font-body {
+  font-size: 1rem;   /* 16px */
+  font-weight: 400;  /* Regular */
+  line-height: 1.5;
+}
+
+.erp-font-dense {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 400;
+}
+
+/* Special cases */
+.erp-font-bold {
+  font-weight: 700;
+}
+
+.erp-font-light {
+  font-weight: 300;
 }
