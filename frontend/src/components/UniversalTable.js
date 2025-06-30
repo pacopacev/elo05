@@ -1,3 +1,4 @@
+// UniversalTable.js
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   Table, TableBody, TableCell, TableContainer,

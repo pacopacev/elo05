@@ -11,7 +11,48 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, JSONParser]  # For handling file uploads
-
+    
+    def list_products(self, request):
+        try:
+            # Get queryset with prefetched images
+            queryset = self.get_queryset().prefetch_related('images')
+            
+            if not queryset.exists():
+                return Response([], status=status.HTTP_200_OK)
+            
+            # Serialize the data
+            serializer = self.get_serializer(queryset, many=True)
+            response_data = serializer.data
+            
+            # Add image URLs to each product
+            for product_data, product in zip(response_data, queryset):
+                product_data['images'] = [
+                    {
+                        'id': image.id,
+                        'url': request.build_absolute_uri(image.file.url),
+                    }
+                    for image in product.images.all()
+                    if image.file  # Check if file exists
+                ]
+            
+            # Handle pagination
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                return self.get_paginated_response(response_data)
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+            
+            
+            
+            
+            
     def create(self, request, *args, **kwargs):
         """
         Create product with optional images in single request

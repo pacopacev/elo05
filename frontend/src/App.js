@@ -8,12 +8,6 @@ import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
-// import YourAccount from './components/YourAccountComponent';
-
-
-// import FollowUpForm from './components/flowbit/FollowUpForm';
-
-
 
 import MainPage from './pages/MainPage'; // Adjust the path based on where your MainPage component is located
 import Profile from './pages/Profile';
@@ -23,6 +17,7 @@ import UserLogTable from './pages/UserLogTable';
 import YourAccountPage from './pages/YourAccountPage';
 
 import AddProductPage from './pages/flowbit/AddProductPage';
+import ProductListPage from './pages/flowbit/ProductListPage';
 
 
 
@@ -47,12 +42,12 @@ function App() {
         </Route>
 
         <Route path="/mims" element={<Dashboard />}>
-//          <Route index element={<MainPage />} /> {/* Default content inside dashboard */}
-
-
+//        <Route index element={<MainPage />} /> {/* Default content inside dashboard */}
           <Route path="add_product" element={<AddProductPage />} />
+          <Route path="products" element={<ProductListPage />} />
+        </Route>
 
-</Route>
+
         <Route path="/account" element={<Dashboard />}>
 //          <Route index element={<MainPage />} /> {/* Default content inside dashboard */}
           <Route path="your_account" element={<YourAccountPage />} />

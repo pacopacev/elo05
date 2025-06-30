@@ -16,3 +16,5 @@ class ProductImageSerializer(serializers.ModelSerializer):
         model = ProductImage
         fields = '__all__'
         read_only_fields = ['created_at']
+
+

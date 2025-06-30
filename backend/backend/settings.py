@@ -13,8 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 current_platform = platform.system()
 if current_platform == 'Windows':
     MEDIA_ROOT = r'D:\elo05_uploaded_images'
+    #PRODUCT_IMAGES_ROOT = r'D:\elo05_product_images'
 else:
     MEDIA_ROOT = '/home/test/Pictures'
+    #PRODUCT_IMAGES_ROOT = '/home/product_images'
+    
+MEDIA_URL = '/media/'
 
 # ✅ Core settings
 SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret')
@@ -177,8 +181,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-MEDIA_URL = '/media/'
-PRODUCT_IMAGES_URL = '/product_images/'
+
 
 # ✅ Primary key config
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
