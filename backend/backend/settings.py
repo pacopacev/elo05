@@ -15,7 +15,7 @@ if current_platform == 'Windows':
     MEDIA_ROOT = r'D:\elo05_uploaded_images'
     #PRODUCT_IMAGES_ROOT = r'D:\elo05_product_images'
 else:
-    MEDIA_ROOT = '/home/test/Pictures'
+    MEDIA_ROOT = '/home/test/uploaded_images'
     #PRODUCT_IMAGES_ROOT = '/home/product_images'
     
 MEDIA_URL = '/media/'
