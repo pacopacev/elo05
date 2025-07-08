@@ -60,7 +60,7 @@ const UniversalButton = ({
 UniversalButton.propTypes = {
   children: PropTypes.node.isRequired,
   onClick: PropTypes.func,
-  variant: PropTypes.oneOf(['primary', 'secondary', 'danger', 'outline', 'ghost']),
+  variant: PropTypes.oneOf(['primary', 'secondary', 'danger', 'outline', 'ghost','success', 'success_light']),
   size: PropTypes.oneOf(['small', 'medium', 'large']),
   disabled: PropTypes.bool,
   type: PropTypes.oneOf(['button', 'submit', 'reset']),

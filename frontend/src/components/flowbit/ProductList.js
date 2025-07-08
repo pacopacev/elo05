@@ -8,10 +8,43 @@ import logo from '../../assets/images/flowbit.png';
 import UniversalWindow from '../../components/UniversalWindow/UniversalWindow';
 import AddProductForm from './AddProductForm';
 import UniversalButton from '../../components/buttons/UniversalButton';
+import { 
+  Button, 
+  Snackbar, 
+  Alert as MuiAlert, 
+  Dialog, 
+  DialogActions, 
+  DialogTitle, 
+  DialogContent, 
+  DialogContentText,
+  CircularProgress,
+} from '@mui/material';
 
 const ProductList = () => {
   const [windowOpen, setWindowOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [editProduct, setEditProduct] = useState(null);
+
+
+    // Function to trigger refresh
+  const handleProductSaved = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+  
+
+  const [snackbar, setSnackbar] = useState({ 
+      open: false, 
+      message: '', 
+      severity: 'success' 
+    });
+
+  const [deleteDialog, setDeleteDialog] = useState({ 
+      open: false, 
+      id: null,
+      deleting: false  // Track if deletion is in progress
+    });
+
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const columns = useMemo(() => [
     { Header: 'ID', accessor: 'id', width: 20 },
@@ -50,25 +83,83 @@ const ProductList = () => {
           }
         }}>
           {value?.length > 0 ? (
-            value.map((image) => {
-              const imageUrl = image.url || 
-                            (image.file ? `${process.env.REACT_APP_API_BASE_URL}${image.url}` : null);
-              return (
-                <img
-                  key={image.id}
-                  src={imageUrl || logo}
-                  onError={(e) => (e.target.src = logo)}
-                  alt="Product"
-                />
-              );
-            })
+            value.map((image) => (
+              <img
+                key={image.id}
+                src={image.url || logo}
+                onError={(e) => { e.target.onerror = null; e.target.src = logo; }}
+                alt="Product"
+              />
+            ))
           ) : (
             <span>No images</span>
           )}
         </Box>
       )
+    },
+    {
+      Header: 'Actions',
+      accessor: 'actions',
+      width: 200,
+      Cell: ({ row }) => (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            onClick={() => {
+              setEditProduct(row.original);
+              setWindowOpen(true);
+              setIsMinimized(false);
+            }}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            size="small"
+            onClick={() => setDeleteDialog({ 
+              open: true, 
+              id: row.original.id,
+              deleting: false
+            })}
+          >
+            Delete
+          </Button>
+        </div>
+      ),
     }
   ], []);
+
+  // Handle delete confirmation
+    const handleDelete = async () => {
+      setDeleteDialog(prev => ({ ...prev, deleting: true }));
+      const token = localStorage.getItem('authToken');
+      try {
+        await apiRequest(
+          'POST', 
+          `${process.env.REACT_APP_API_BASE_URL}/api/flowbit/del_product/`, 
+          { product_id: deleteDialog.id }, 
+          { token }
+        );
+        setSnackbar({ 
+          open: true, 
+          message: 'Log deleted successfully.', 
+          severity: 'success' 
+        });
+        setRefreshKey(prev => prev + 1);
+      } catch (error) {
+        console.error('Delete failed:', error.message);
+        setSnackbar({ 
+          open: true, 
+          message: 'Failed to delete log.', 
+          severity: 'error' 
+        });
+      } finally {
+        setDeleteDialog({ open: false, id: null, deleting: false });
+      }
+    };
 
   const fetchData = useCallback(async () => {
     const token = localStorage.getItem('authToken');
@@ -97,23 +188,82 @@ const ProductList = () => {
       </UniversalButton>
       <Stack spacing={2} direction="row">
         <UniversalWindow
-          isOpen={windowOpen}
-          setIsOpen={setWindowOpen}
-          isMinimized={isMinimized}
-          setIsMinimized={setIsMinimized}
-          windowTitle="Add New Product"
-          width={900}
-          height={900}
-        >
-          <AddProductForm />
-        </UniversalWindow>
+  isOpen={windowOpen}
+  setIsOpen={(open) => {
+    setWindowOpen(open);
+    if (!open) setEditProduct(null);
+  }}
+  isMinimized={isMinimized}
+  setIsMinimized={setIsMinimized}
+  windowTitle={editProduct ? "Edit Product" : "Add New Product"}
+  width={900}
+  height={900}
+>
+  <AddProductForm 
+    product={editProduct} 
+    onProductSaved={() => {
+      setRefreshKey(prev => prev + 1);
+      setWindowOpen(false);
+      setEditProduct(null);
+    }}
+  />
+</UniversalWindow>
       </Stack>
       
       <Box sx={{ my: 2 }} /> {/* Spacer instead of <br /> tags */}
       <UniversalTable 
         columns={columns} 
-        fetchData={fetchData} 
+        fetchData={fetchData}
+        refreshTrigger={refreshKey}
+        
       />
+      {/* Delete Confirmation Dialog */}
+            <Dialog
+              open={deleteDialog.open}
+              onClose={() => !deleteDialog.deleting && setDeleteDialog({ open: false, id: null, deleting: false })}
+            >
+              <DialogTitle>Confirm Deletion</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  Are you sure you want to delete this product entry? This action cannot be undone.
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button 
+                  onClick={() => setDeleteDialog({ open: false, id: null, deleting: false })}
+                  disabled={deleteDialog.deleting}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleDelete}
+                  color="error"
+                  variant="contained"
+                  disabled={deleteDialog.deleting}
+                  startIcon={deleteDialog.deleting ? <CircularProgress size={20} /> : null}
+                >
+                  {deleteDialog.deleting ? 'Deleting...' : 'Delete'}
+                </Button>
+              </DialogActions>
+            </Dialog>
+      
+            {/* Status Snackbar */}
+            <Snackbar
+              open={snackbar.open}
+              autoHideDuration={3000}
+              onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+              <MuiAlert
+                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+                severity={snackbar.severity}
+                sx={{ width: '100%' }}
+                elevation={6}
+                variant="filled"
+              >
+                {snackbar.message}
+              </MuiAlert>
+            </Snackbar>
     </>
   );
 };

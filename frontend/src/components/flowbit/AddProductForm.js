@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TextField,
   Button,
@@ -11,7 +11,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/images/flowbit.png';
 
-const AddProductForm = () => {
+const AddProductForm = ({ product, onProductSaved  }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     code: '',
@@ -25,6 +25,28 @@ const AddProductForm = () => {
     message: '',
     severity: 'success',
   });
+
+  // When product changes, update form fields
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        id: product.id || '',
+        code: product.code || '',
+        name: product.name || '',
+        description: product.description || '',
+      });
+      // Optionally, set preview to first image if available
+      if (product.images && product.images.length > 0 && product.images[0].url) {
+        setPreview(product.images[0].url);
+      } else {
+        setPreview(logo);
+      }
+    } else {
+      setFormData({ code: '', name: '', description: '' });
+      setPreview(logo);
+      setImageFiles([]);
+    }
+  }, [product]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,23 +64,25 @@ const AddProductForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const token = localStorage.getItem('authToken');
       const formPayload = new FormData();
-
-      // Append product data
       formPayload.append('code', formData.code);
       formPayload.append('name', formData.name);
       formPayload.append('description', formData.description || '');
-
-      // Append all image files
       imageFiles.forEach(file => {
         formPayload.append('images', file);
       });
 
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/flowbit/add_product/`, {
-        method: 'POST',
+      let url = `${process.env.REACT_APP_API_BASE_URL}/api/flowbit/products/`;
+      let method = 'POST';
+      if (formData.id) {
+        url += `${formData.id}/`;
+        method = 'PUT'; // or 'PATCH'
+      }
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Authorization': `Token ${token}`,
         },
@@ -67,26 +91,27 @@ const AddProductForm = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-       
-        throw new Error(errorData.code[0] || 'Failed to create product');
+        throw new Error(errorData.code?.[0] || errorData.error || 'Failed to save product');
       }
 
       const result = await response.json();
-
       setSnackbar({
         open: true,
-        message: 'Product created successfully!',
+        message: formData.id ? 'Product updated successfully!' : 'Product created successfully!',
         severity: 'success',
       });
 
+      // Call the parent callback
+      if (onProductSaved) {
+        onProductSaved();
+      }
       // Optionally redirect after success
       // setTimeout(() => navigate('/products'), 2000);
-
     } catch (error) {
-      console.error('Create error:', error);
+      console.error('Save error:', error);
       setSnackbar({
         open: true,
-        message: error.message || 'Failed to create product',
+        message: error.message || 'Failed to save product',
         severity: 'error',
       });
     }

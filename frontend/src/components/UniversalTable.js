@@ -87,44 +87,56 @@ const UniversalTable = ({ columns, fetchData, refreshTrigger }) => {
       <TableContainer component={Paper} elevation={3}>
         <Table {...getTableProps()} size="small">
           <TableHead>
-            {headerGroups.map(headerGroup => (
-              <TableRow {...headerGroup.getHeaderGroupProps()}>
-                {headerGroup.headers.map(column => (
-                  <TableCell
-                    {...column.getHeaderProps(column.getSortByToggleProps())}
-                    sx={{
-                      fontWeight: 'bold',
-                      backgroundColor: 'background.default',
-                      '&:hover': { backgroundColor: 'action.hover' },
-                    }}
-                  >
-                    <Box display="flex" alignItems="center">
-                      {column.render('Header')}
-                      {column.canSort && (
-                        <TableSortLabel
-                          active={column.isSorted}
-                          direction={column.isSortedDesc ? 'desc' : 'asc'}
-                        />
-                      )}
-                    </Box>
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
+            {headerGroups.map(headerGroup => {
+              const { key: rowKey, ...rowProps } = headerGroup.getHeaderGroupProps();
+              return (
+                <TableRow key={rowKey} {...rowProps}>
+                  {headerGroup.headers.map(column => {
+                    const { key: cellKey, ...cellProps } = column.getHeaderProps(column.getSortByToggleProps());
+                    return (
+                      <TableCell
+                        key={cellKey}
+                        {...cellProps}
+                        sx={{
+                          fontWeight: 'bold',
+                          backgroundColor: 'background.default',
+                          '&:hover': { backgroundColor: 'action.hover' },
+                        }}
+                      >
+                        <Box display="flex" alignItems="center">
+                          {column.render('Header')}
+                          {column.canSort && (
+                            <TableSortLabel
+                              active={column.isSorted}
+                              direction={column.isSortedDesc ? 'desc' : 'asc'}
+                            />
+                          )}
+                        </Box>
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
           </TableHead>
           <TableBody {...getTableBodyProps()}>
             {page.map(row => {
               prepareRow(row);
+              const { key: rowKey, ...rowProps } = row.getRowProps();
               return (
-                <TableRow {...row.getRowProps()} hover>
-                  {row.cells.map(cell => (
-                    <TableCell
-                      {...cell.getCellProps()}
-                      sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
-                    >
-                      {cell.render('Cell')}
-                    </TableCell>
-                  ))}
+                <TableRow key={rowKey} {...rowProps} hover>
+                  {row.cells.map(cell => {
+                    const { key: cellKey, ...cellProps } = cell.getCellProps();
+                    return (
+                      <TableCell
+                        key={cellKey}
+                        {...cellProps}
+                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
+                      >
+                        {cell.render('Cell')}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               );
             })}

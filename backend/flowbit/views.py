@@ -5,6 +5,10 @@ from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, JSONParser
 from .models import Product, ProductImage
 from .serializers import ProductSerializer, ProductImageSerializer
+from global_model import GlobalModel
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.http import JsonResponse
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().prefetch_related('images')
@@ -12,41 +16,31 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, JSONParser]  # For handling file uploads
     
-    def list_products(self, request):
+    @action(detail=False, methods=['post'], url_path='del_product')
+    def delete_product(self, request):
+        
+        id = request.data.get('product_id')
+        where = {'id': id}
+        where_product_id_images = {'product_id': id}
+        if not id:
+            return JsonResponse({'status': 'error', 'message': 'product_id is required'}, status=400)
         try:
-            # Get queryset with prefetched images
-            queryset = self.get_queryset().prefetch_related('images')
-            
-            if not queryset.exists():
-                return Response([], status=status.HTTP_200_OK)
-            
-            # Serialize the data
-            serializer = self.get_serializer(queryset, many=True)
-            response_data = serializer.data
-            
-            # Add image URLs to each product
-            for product_data, product in zip(response_data, queryset):
-                product_data['images'] = [
-                    {
-                        'id': image.id,
-                        'url': request.build_absolute_uri(image.file.url),
-                    }
-                    for image in product.images.all()
-                    if image.file  # Check if file exists
-                ]
-            
-            # Handle pagination
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                return self.get_paginated_response(response_data)
-            
-            return Response(response_data, status=status.HTTP_200_OK)
-            
+            GlobalModel.delete_query('flowbit_productimage', where_product_id_images)
+            GlobalModel.delete_query('flowbit_product', where)
+            return JsonResponse({'status': 'success', 'message': f'Product with id {id} deleted successfully'})
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset().prefetch_related('images')
+        page = self.paginate_queryset(queryset)
+        context = self.get_serializer_context()
+        context['request'] = request
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, context=context)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True, context=context)
+        return Response(serializer.data)
             
             
             
@@ -54,33 +48,39 @@ class ProductViewSet(viewsets.ModelViewSet):
             
             
     def create(self, request, *args, **kwargs):
-        """
-        Create product with optional images in single request
-        """
+        print("Request data:", request.data)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
         try:
-            # Save product first to get product_id
+            print("Creating new product")
             product = serializer.save(created_by=request.user)
-            
-            # Process images if included
             images = request.FILES.getlist('images', [])
             for image in images:
                 ProductImage.objects.create(
-                    product_id=product.id,  # Explicitly using product_id
+                    product_id=product.id,
                     file=image,
                     created_by=request.user
                 )
-                
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-            
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        print("Updating existing product")
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        updated_product = serializer.save(created_by=request.user)
+        images = request.FILES.getlist('images', [])
+        for image in images:
+            ProductImage.objects.create(
+                product_id=updated_product.id,
+                file=image,
+                created_by=request.user
             )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['POST'], url_path='add_product')
     def upload_images(self, request, pk=None):
@@ -115,7 +115,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         """
         product = self.get_object()
         images = product.images.all()
-        serializer = ProductImageSerializer(images, many=True)
+        serializer = ProductImageSerializer(images, many=True, context={'request': request})
         return Response({
             'product_id': product.id,
             'images': serializer.data
@@ -124,3 +124,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Auto-set created_by to current user"""
         serializer.save(created_by=self.request.user)
+        
+    
+    
