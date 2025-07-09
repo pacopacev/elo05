@@ -16,6 +16,20 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, JSONParser]  # For handling file uploads
     
+    
+    @action(detail=False, methods=['get'], url_path='search_product')
+    def get_search_products(self, request):
+        
+        search = request.query_params.get('search') 
+        if not search:
+            return JsonResponse({'status': 'error', 'message': 'search is required'}, status=400)
+        try:
+            products = Product.objects.filter(name__icontains=search)
+            serializer = ProductSerializer(products, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
     @action(detail=False, methods=['post'], url_path='del_product')
     def delete_product(self, request):
         
@@ -30,18 +44,30 @@ class ProductViewSet(viewsets.ModelViewSet):
             return JsonResponse({'status': 'success', 'message': f'Product with id {id} deleted successfully'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        
+        
+        
     
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset().prefetch_related('images')
+        queryset = self.filter_queryset(self.get_queryset().prefetch_related('images'))
+        search = request.query_params.get('search')
+        
+        if search:
+            print(f"Search request received: {search}")
+            queryset = queryset.filter(name__icontains=search)
+        
+        # Common pagination and serialization logic
         page = self.paginate_queryset(queryset)
         context = self.get_serializer_context()
         context['request'] = request
+        
         if page is not None:
             serializer = self.get_serializer(page, many=True, context=context)
             return self.get_paginated_response(serializer.data)
+        
         serializer = self.get_serializer(queryset, many=True, context=context)
         return Response(serializer.data)
-            
+                
             
             
             

@@ -40,7 +40,7 @@ const Login = () => {
 
   return (
     <div className="max-w-sm mx-auto mt-24 p-6 border-2 border-gray-400 rounded-lg bg-gray-100 shadow-lg font-serif">
-      <img className="p-2 w-50 h-40 mx-auto object-contain" src={logo} alt="Logo" />
+      <img className="p-2 w-50 h-40 mx-auto object-contain " src={logo} alt="Logo" />
       <form onSubmit={handleLogin}>
         <input
           type="text"

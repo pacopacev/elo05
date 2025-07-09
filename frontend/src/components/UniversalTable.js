@@ -1,5 +1,4 @@
-// UniversalTable.js
-import React, { useEffect, useState, useMemo } from 'react';
+import React from 'react';
 import {
   Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, TableSortLabel,
@@ -7,33 +6,20 @@ import {
 } from '@mui/material';
 import { useTable, useSortBy, usePagination } from 'react-table';
 
-const UniversalTable = ({ columns, fetchData, refreshTrigger }) => {
-  const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const defaultColumn = useMemo(() => ({
+const UniversalTable = ({ 
+  columns, 
+  data = [], 
+  fetchData, 
+  loading = false, 
+  error = null,
+  refreshTrigger,
+  manualPagination = false
+}) => {
+  const defaultColumn = React.useMemo(() => ({
     minWidth: 50,
     width: 150,
     maxWidth: 500,
   }), []);
-
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const result = await fetchData();
-        setData(Array.isArray(result) ? result : []);
-        setError(null);
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError(err.message || 'Failed to load data.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-  }, [fetchData, refreshTrigger]);
 
   const {
     getTableProps,
@@ -53,12 +39,13 @@ const UniversalTable = ({ columns, fetchData, refreshTrigger }) => {
       data,
       defaultColumn,
       initialState: { pageIndex: 0, pageSize: 15 },
+      manualPagination,
     },
     useSortBy,
     usePagination
   );
 
-  if (isLoading) {
+  if (loading) {
     return (
       <Box display="flex" justifyContent="center" p={4}>
         <CircularProgress />
@@ -74,7 +61,7 @@ const UniversalTable = ({ columns, fetchData, refreshTrigger }) => {
     );
   }
 
-  if (!data.length) {
+  if (!loading && !error && data.length === 0) {
     return (
       <Box p={4}>
         <Alert severity="info">No data available</Alert>
@@ -87,56 +74,44 @@ const UniversalTable = ({ columns, fetchData, refreshTrigger }) => {
       <TableContainer component={Paper} elevation={3}>
         <Table {...getTableProps()} size="small">
           <TableHead>
-            {headerGroups.map(headerGroup => {
-              const { key: rowKey, ...rowProps } = headerGroup.getHeaderGroupProps();
-              return (
-                <TableRow key={rowKey} {...rowProps}>
-                  {headerGroup.headers.map(column => {
-                    const { key: cellKey, ...cellProps } = column.getHeaderProps(column.getSortByToggleProps());
-                    return (
-                      <TableCell
-                        key={cellKey}
-                        {...cellProps}
-                        sx={{
-                          fontWeight: 'bold',
-                          backgroundColor: 'background.default',
-                          '&:hover': { backgroundColor: 'action.hover' },
-                        }}
-                      >
-                        <Box display="flex" alignItems="center">
-                          {column.render('Header')}
-                          {column.canSort && (
-                            <TableSortLabel
-                              active={column.isSorted}
-                              direction={column.isSortedDesc ? 'desc' : 'asc'}
-                            />
-                          )}
-                        </Box>
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            })}
+            {headerGroups.map(headerGroup => (
+              <TableRow {...headerGroup.getHeaderGroupProps()}>
+                {headerGroup.headers.map(column => (
+                  <TableCell
+                    {...column.getHeaderProps(column.getSortByToggleProps())}
+                    sx={{
+                      fontWeight: 'bold',
+                      backgroundColor: 'background.default',
+                      '&:hover': { backgroundColor: 'action.hover' },
+                    }}
+                  >
+                    <Box display="flex" alignItems="center">
+                      {column.render('Header')}
+                      {column.canSort && (
+                        <TableSortLabel
+                          active={column.isSorted}
+                          direction={column.isSortedDesc ? 'desc' : 'asc'}
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
           </TableHead>
           <TableBody {...getTableBodyProps()}>
             {page.map(row => {
               prepareRow(row);
-              const { key: rowKey, ...rowProps } = row.getRowProps();
               return (
-                <TableRow key={rowKey} {...rowProps} hover>
-                  {row.cells.map(cell => {
-                    const { key: cellKey, ...cellProps } = cell.getCellProps();
-                    return (
-                      <TableCell
-                        key={cellKey}
-                        {...cellProps}
-                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
-                      >
-                        {cell.render('Cell')}
-                      </TableCell>
-                    );
-                  })}
+                <TableRow {...row.getRowProps()} hover>
+                  {row.cells.map(cell => (
+                    <TableCell
+                      {...cell.getCellProps()}
+                      sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    >
+                      {cell.render('Cell')}
+                    </TableCell>
+                  ))}
                 </TableRow>
               );
             })}
@@ -144,7 +119,6 @@ const UniversalTable = ({ columns, fetchData, refreshTrigger }) => {
         </Table>
       </TableContainer>
 
-      {/* Pagination Controls */}
       <Box display="flex" justifyContent="space-between" alignItems="center" p={2}>
         <Typography variant="body2">
           Page {pageIndex + 1} of {pageOptions.length}

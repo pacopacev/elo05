@@ -1,50 +1,129 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { apiRequest } from '../../utils/api';
 import UniversalTable from '../../components/UniversalTable';
 import { Typography } from '@mui/material';
 import { Box } from '@mui/system';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
+import TextField from '@mui/material/TextField';
 import logo from '../../assets/images/flowbit.png';
 import UniversalWindow from '../../components/UniversalWindow/UniversalWindow';
 import AddProductForm from './AddProductForm';
 import UniversalButton from '../../components/buttons/UniversalButton';
-import { 
-  Button, 
-  Snackbar, 
-  Alert as MuiAlert, 
-  Dialog, 
-  DialogActions, 
-  DialogTitle, 
-  DialogContent, 
+import {
+  Button,
+  Snackbar,
+  Alert as MuiAlert,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  DialogContent,
   DialogContentText,
   CircularProgress,
 } from '@mui/material';
 
 const ProductList = () => {
+  // State declarations
   const [windowOpen, setWindowOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
-
-
-    // Function to trigger refresh
-  const handleProductSaved = () => {
-    setRefreshKey(prev => prev + 1);
-  };
+  const [searchText, setSearchText] = useState('');
+  const [tableData, setTableData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
-  const [snackbar, setSnackbar] = useState({ 
-      open: false, 
-      message: '', 
-      severity: 'success' 
-    });
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    id: null,
+    deleting: false
+  });
 
-  const [deleteDialog, setDeleteDialog] = useState({ 
-      open: false, 
-      id: null,
-      deleting: false  // Track if deletion is in progress
-    });
+  // Fetch data function
+  const fetchData = useCallback(async (searchTerm = '') => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setError('Authentication required');
+      setIsLoading(false);
+      return;
+    }
 
-  const [refreshKey, setRefreshKey] = useState(0);
+    setIsLoading(true);
+    try {
+      const response = await apiRequest(
+        'GET',
+        `${process.env.REACT_APP_API_BASE_URL}/api/flowbit/products/`,
+        { search: searchTerm.trim() },
+        { token }
+      );
+
+      if (!response) {
+        throw new Error('No response received');
+      }
+
+      setTableData(response);
+      setError(null);
+      return response;
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(err.message || 'Failed to load data');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    fetchData('');
+  }, [fetchData]);
+
+  // Search handler
+  const handleSearch = useCallback((searchTerm) => {
+    setSearchText(searchTerm);
+    fetchData(searchTerm);
+  }, [fetchData]);
+
+  // Product saved handler
+  const handleProductSaved = useCallback(() => {
+    fetchData(searchText);
+    setWindowOpen(false);
+    setEditProduct(null);
+  }, [fetchData, searchText]);
+
+  // Handle delete confirmation
+  const handleDelete = async () => {
+    setDeleteDialog(prev => ({ ...prev, deleting: true }));
+    const token = localStorage.getItem('authToken');
+    try {
+      await apiRequest(
+        'POST',
+        `${process.env.REACT_APP_API_BASE_URL}/api/flowbit/del_product/`,
+        { product_id: deleteDialog.id },
+        { token }
+      );
+      setSnackbar({
+        open: true,
+        message: 'Product deleted successfully.',
+        severity: 'success'
+      });
+      fetchData(searchText);
+    } catch (error) {
+      console.error('Delete failed:', error.message);
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete product.',
+        severity: 'error'
+      });
+    } finally {
+      setDeleteDialog({ open: false, id: null, deleting: false });
+    }
+  };
 
   const columns = useMemo(() => [
     { Header: 'ID', accessor: 'id', width: 20 },
@@ -55,7 +134,7 @@ const ProductList = () => {
       Header: 'Date Created',
       accessor: 'created_at',
       width: 300,
-      Cell: ({ value }) => 
+      Cell: ({ value }) =>
         new Intl.DateTimeFormat('en-GB', {
           year: 'numeric',
           month: 'short',
@@ -70,7 +149,7 @@ const ProductList = () => {
       accessor: 'images',
       width: 150,
       Cell: ({ value }) => (
-        <Box sx={{ 
+        <Box sx={{
           display: 'flex',
           gap: 1,
           overflowX: 'auto',
@@ -119,8 +198,8 @@ const ProductList = () => {
             variant="contained"
             color="error"
             size="small"
-            onClick={() => setDeleteDialog({ 
-              open: true, 
+            onClick={() => setDeleteDialog({
+              open: true,
               id: row.original.id,
               deleting: false
             })}
@@ -132,138 +211,114 @@ const ProductList = () => {
     }
   ], []);
 
-  // Handle delete confirmation
-    const handleDelete = async () => {
-      setDeleteDialog(prev => ({ ...prev, deleting: true }));
-      const token = localStorage.getItem('authToken');
-      try {
-        await apiRequest(
-          'POST', 
-          `${process.env.REACT_APP_API_BASE_URL}/api/flowbit/del_product/`, 
-          { product_id: deleteDialog.id }, 
-          { token }
-        );
-        setSnackbar({ 
-          open: true, 
-          message: 'Log deleted successfully.', 
-          severity: 'success' 
-        });
-        setRefreshKey(prev => prev + 1);
-      } catch (error) {
-        console.error('Delete failed:', error.message);
-        setSnackbar({ 
-          open: true, 
-          message: 'Failed to delete log.', 
-          severity: 'error' 
-        });
-      } finally {
-        setDeleteDialog({ open: false, id: null, deleting: false });
-      }
-    };
-
-  const fetchData = useCallback(async () => {
-    const token = localStorage.getItem('authToken');
-    const response = await apiRequest(
-      'GET', 
-      `${process.env.REACT_APP_API_BASE_URL}/api/flowbit/products/`, 
-      {}, 
-      { token }
-    );
-    return response;
-  }, []);
-
   return (
     <>
-      <Typography variant="h5" className="erp-font" gutterBottom>
-        Product list
-      </Typography>
-      <UniversalButton
-        variant="success"
-        size='small'
-        onClick={() => { setWindowOpen(true); setIsMinimized(false); }}
-        disabled={windowOpen && !isMinimized}
-        style={{ marginBottom: 12 }}
-      >
-        Add Product
-      </UniversalButton>
+      <Tooltip title="This is a list of all products.">
+        <Typography variant="h5" className="erp-font" gutterBottom>
+          Product list
+        </Typography>
+      </Tooltip>
+      <Stack direction="row" justifyContent="flex-end">
+        <Box
+          component="form"
+          sx={{
+            '& > :not(style)': { marginRight: 2, width: '25ch' },
+          }}
+          noValidate
+          autoComplete="off"
+        >
+          <TextField
+            id="outlined-basic"
+            label="Search"
+            variant="outlined"
+            size="small"
+            value={searchText}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+        </Box>
+        <UniversalButton
+          variant="success"
+          size='small'
+          onClick={() => {
+            setWindowOpen(true);
+            setIsMinimized(false);
+          }}
+          style={{ marginBottom: 2 }}
+        >
+          Add Product
+        </UniversalButton>
+      </Stack>
       <Stack spacing={2} direction="row">
         <UniversalWindow
-  isOpen={windowOpen}
-  setIsOpen={(open) => {
-    setWindowOpen(open);
-    if (!open) setEditProduct(null);
-  }}
-  isMinimized={isMinimized}
-  setIsMinimized={setIsMinimized}
-  windowTitle={editProduct ? "Edit Product" : "Add New Product"}
-  width={900}
-  height={900}
->
-  <AddProductForm 
-    product={editProduct} 
-    onProductSaved={() => {
-      setRefreshKey(prev => prev + 1);
-      setWindowOpen(false);
-      setEditProduct(null);
-    }}
-  />
-</UniversalWindow>
+          isOpen={windowOpen}
+          setIsOpen={(open) => {
+            setWindowOpen(open);
+            if (!open) setEditProduct(null);
+          }}
+          isMinimized={isMinimized}
+          setIsMinimized={setIsMinimized}
+          windowTitle={editProduct ? "Edit Product" : "Add New Product"}
+          width={900}
+          height={900}
+        >
+          <AddProductForm
+            product={editProduct}
+            onProductSaved={handleProductSaved}
+          />
+        </UniversalWindow>
       </Stack>
-      
-      <Box sx={{ my: 2 }} /> {/* Spacer instead of <br /> tags */}
-      <UniversalTable 
-        columns={columns} 
-        fetchData={fetchData}
-        refreshTrigger={refreshKey}
-        
+      <Box sx={{ my: 1 }} />
+      <UniversalTable
+        columns={columns}
+        data={tableData}
+        loading={isLoading}
+        error={error}
+        onRefresh={() => fetchData(searchText)}
       />
-      {/* Delete Confirmation Dialog */}
-            <Dialog
-              open={deleteDialog.open}
-              onClose={() => !deleteDialog.deleting && setDeleteDialog({ open: false, id: null, deleting: false })}
-            >
-              <DialogTitle>Confirm Deletion</DialogTitle>
-              <DialogContent>
-                <DialogContentText>
-                  Are you sure you want to delete this product entry? This action cannot be undone.
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button 
-                  onClick={() => setDeleteDialog({ open: false, id: null, deleting: false })}
-                  disabled={deleteDialog.deleting}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleDelete}
-                  color="error"
-                  variant="contained"
-                  disabled={deleteDialog.deleting}
-                  startIcon={deleteDialog.deleting ? <CircularProgress size={20} /> : null}
-                >
-                  {deleteDialog.deleting ? 'Deleting...' : 'Delete'}
-                </Button>
-              </DialogActions>
-            </Dialog>
-      
-            {/* Status Snackbar */}
-            <Snackbar
-              open={snackbar.open}
-              autoHideDuration={3000}
-              onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-              <MuiAlert
-                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-                severity={snackbar.severity}
-                sx={{ width: '100%' }}
-                elevation={6}
-                variant="filled"
-              >
-                {snackbar.message}
-              </MuiAlert>
-            </Snackbar>
+      <Dialog
+        open={deleteDialog.open}
+        onClose={() => !deleteDialog.deleting && setDeleteDialog({ open: false, id: null, deleting: false })}
+      >
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this product entry? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setDeleteDialog({ open: false, id: null, deleting: false })}
+            disabled={deleteDialog.deleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDelete}
+            color="error"
+            variant="contained"
+            disabled={deleteDialog.deleting}
+            startIcon={deleteDialog.deleting ? <CircularProgress size={20} /> : null}
+          >
+            {deleteDialog.deleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <MuiAlert
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+          elevation={6}
+          variant="filled"
+        >
+          {snackbar.message}
+        </MuiAlert>
+      </Snackbar>
     </>
   );
 };
