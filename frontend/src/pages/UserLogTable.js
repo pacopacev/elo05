@@ -1,96 +1,102 @@
-import React, { useMemo, useState } from 'react';
-import { useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import UniversalTable from '../components/UniversalTable';
 import { apiRequest } from '../utils/api';
-import { 
-  Button, 
-  Snackbar, 
-  Alert as MuiAlert, 
-  Dialog, 
-  DialogActions, 
-  DialogTitle, 
-  DialogContent, 
+import {
+  Button,
+  Snackbar,
+  Alert as MuiAlert,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  DialogContent,
   DialogContentText,
   CircularProgress,
   Box
 } from '@mui/material';
 
-const UsersTablePage = () => {
-  // State management
-  const [snackbar, setSnackbar] = useState({ 
-    open: false, 
-    message: '', 
-    severity: 'success' 
+const UserLogTablePage = () => {
+
+  const [tableData, setTableData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
   });
-  const [deleteDialog, setDeleteDialog] = useState({ 
-    open: false, 
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
     id: null,
     deleting: false  // Track if deletion is in progress
   });
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // API call to fetch data
- const fetchData = useCallback(async () => {
-  const token = localStorage.getItem('authToken');
-  try {
-    const response = await apiRequest(
-      'GET',
-      `${process.env.REACT_APP_API_BASE_URL}/api/user_log/`,
-      {},
-      { token }
-    );
-    return Array.isArray(response) ? response : [];
-  } catch (error) {
-    console.error('Fetch failed:', error.message);
-    setSnackbar({
-      open: true,
-      message: 'Failed to fetch logs.',
-      severity: 'error'
-    });
-    return [];
-  }
-}, []);
+  const fetchData = useCallback(async () => {
+    const token = localStorage.getItem('authToken');
+    setIsLoading(true);
+    try {
+      const response = await apiRequest(
+        'GET',
+        `${process.env.REACT_APP_API_BASE_URL}/api/user_log/`,
+        {},
+        { token }
+      );
+      setTableData(response);
+      return Array.isArray(response) ? response : [];
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(err.message || 'Failed to load data');
+      setSnackbar({
+        open: true,
+        message: 'Failed to fetch logs.',
+        severity: 'error'
+      });
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  // Handle delete confirmation
   const handleDelete = async () => {
     setDeleteDialog(prev => ({ ...prev, deleting: true }));
     const token = localStorage.getItem('authToken');
     try {
       await apiRequest(
-        'POST', 
-        `${process.env.REACT_APP_API_BASE_URL}/api/del_log/`, 
-        { sequence_id: deleteDialog.id }, 
+        'POST',
+        `${process.env.REACT_APP_API_BASE_URL}/api/del_log/`,
+        { sequence_id: deleteDialog.id },
         { token }
       );
-      setSnackbar({ 
-        open: true, 
-        message: 'Log deleted successfully.', 
-        severity: 'success' 
+      setSnackbar({
+        open: true,
+        message: 'Log deleted successfully.',
+        severity: 'success'
       });
-      setRefreshKey(prev => prev + 1);
+      setRefreshKey(prev => prev + 1); // Refresh the table
     } catch (error) {
       console.error('Delete failed:', error.message);
-      setSnackbar({ 
-        open: true, 
-        message: 'Failed to delete log.', 
-        severity: 'error' 
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete log.',
+        severity: 'error'
       });
     } finally {
       setDeleteDialog({ open: false, id: null, deleting: false });
+      fetchData(); // Refresh the table after deletion
     }
   };
 
-  // Table columns configuration
   const columns = useMemo(() => [
-    { 
-      Header: 'User ID', 
-      accessor: 'user_id', 
+    {
+      Header: 'User ID',
+      accessor: 'user_id',
       width: 100,
     },
-    { 
-      Header: 'Email', 
+    {
+      Header: 'Email',
       accessor: 'email',
-      minWidth: 200 
+      minWidth: 200
     },
     {
       Header: 'Created At',
@@ -114,8 +120,8 @@ const UsersTablePage = () => {
           variant="contained"
           color="error"
           size="small"
-          onClick={() => setDeleteDialog({ 
-            open: true, 
+          onClick={() => setDeleteDialog({
+            open: true,
             id: row.original.id,
             deleting: false
           })}
@@ -126,15 +132,22 @@ const UsersTablePage = () => {
     }
   ], []);
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold text-center mb-6">Auth User Log</h1>
-      
-<UniversalTable 
-  columns={columns}
-  fetchData={fetchData}
-  refreshTrigger={refreshKey}
-/>
+
+      <UniversalTable
+        columns={columns}
+        fetchData={fetchData}
+        refreshTrigger={refreshKey}
+        data={tableData}
+        loading={isLoading}
+        error={error}
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog
@@ -148,13 +161,13 @@ const UsersTablePage = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => setDeleteDialog({ open: false, id: null, deleting: false })}
             disabled={deleteDialog.deleting}
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleDelete}
             color="error"
             variant="contained"
@@ -187,4 +200,5 @@ const UsersTablePage = () => {
   );
 };
 
-export default UsersTablePage;
+export default UserLogTablePage;
+
