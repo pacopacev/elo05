@@ -46,3 +46,49 @@
 .erp-font-light {
   font-weight: 300;
 }
+
+.upload-modal {
+  max-width: 500px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.dropzone {
+  border: 2px dashed #ccc;
+  padding: 20px;
+  text-align: center;
+  margin: 15px 0;
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.error {
+  color: #d32f2f;
+  background: #fdecea;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.success {
+  color: #388e3c;
+  background: #ebf5eb;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

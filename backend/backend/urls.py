@@ -6,5 +6,6 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
-    path('', include('flowbit.urls')),  # Include flowbit URLs at root
+    path('', include('flowbit.urls')),
+    path('', include('dms.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

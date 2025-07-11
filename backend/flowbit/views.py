@@ -9,6 +9,7 @@ from global_model import GlobalModel
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import JsonResponse
+from django.db.models import Q
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().prefetch_related('images')
@@ -54,7 +55,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         
         if search:
             print(f"Search request received: {search}")
-            queryset = queryset.filter(name__icontains=search)
+            # queryset = queryset.filter(name__icontains=search)
+            if search:
+                queryset = queryset.filter(
+                    Q(name__icontains=search) |
+                    Q(description__icontains=search) |
+                    Q(code__icontains=search)
+                )
         
         # Common pagination and serialization logic
         page = self.paginate_queryset(queryset)
