@@ -9,7 +9,7 @@ from django.conf import settings
 # ====== STORAGE DEFINITIONS FIRST ======
 # Platform-specific settings
 current_platform = platform.system()
-PRODUCT_IMAGES_ROOT = r'D:\elo05_uploaded_images' if current_platform == 'Windows' else '/home/test/uploaded_images'
+PRODUCT_IMAGES_ROOT = r'D:\elo05_uploaded_images' if current_platform == 'Windows' else '/home/test/flowbit_uploads/flowbit_uploaded_images'
 os.makedirs(PRODUCT_IMAGES_ROOT, exist_ok=True)
 
 class ProductImageStorage(FileSystemStorage):

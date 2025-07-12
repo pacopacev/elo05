@@ -13,12 +13,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 current_platform = platform.system()
 if current_platform == 'Windows':
     MEDIA_ROOT = r'D:\elo05_uploaded_images'
-    #PRODUCT_IMAGES_ROOT = r'D:\elo05_product_images'
+    DOCUMENT_UPLOAD_ROOT = r'D:\elo05_flowbit_uploaded_documents'
+   
 else:
-    MEDIA_ROOT = '/home/test/uploaded_images'
-    #PRODUCT_IMAGES_ROOT = '/home/product_images'
-    
+    MEDIA_ROOT = '/home/test/flowbit_uploads'
+    DOCUMENT_UPLOAD_ROOT = '/home/test/flowbit_uploaded_documents'
+
 MEDIA_URL = '/media/'
+DOCUMENT_URL = '/documents/'
 
 # ✅ Core settings
 SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-secret')

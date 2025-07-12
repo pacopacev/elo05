@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.text import slugify
+from django.conf import settings
 
 User = get_user_model()
 
@@ -73,7 +74,7 @@ class Document(models.Model):
 
 class DocumentVersion(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='versions')
-    file = models.FileField(upload_to='documents/%Y/%m/%d/')
+    file = models.FileField(upload_to='flowbit_uploaded_documents/%Y/%m/%d/')
     version_number = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -142,3 +143,4 @@ class DocumentAccess(models.Model):
     
     def __str__(self):
         return f"{self.user} can {self.access_type} {self.document}"
+
