@@ -6,7 +6,6 @@ from rest_framework.authtoken.models import Token
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
-from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
@@ -250,7 +249,8 @@ def update_account_info(request):
         file = request.FILES.get('file')
         if file:
             # Save file manually to D:\elo05_uploaded_images\user_<id>\
-            upload_dir = os.path.join('D:/elo05_uploaded_images', f'user_{user_id}')
+            upload_dir = os.path.join(settings.MEDIA_ROOT, f'user_{user_id}')
+            print(f"upload_dir", upload_dir)
             os.makedirs(upload_dir, exist_ok=True)
 
             file_path = os.path.join(upload_dir, file.name)

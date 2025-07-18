@@ -23,6 +23,8 @@ import {
 } from '@mui/material';
 
 const ProductList = () => {
+  const [number, setNumber] = useState(666); // Example state variable, can be used for testing or other purposes
+
   // State declarations
   const [windowOpen, setWindowOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -100,6 +102,7 @@ const ProductList = () => {
   const handleDelete = async () => {
     setDeleteDialog(prev => ({ ...prev, deleting: true }));
     const token = localStorage.getItem('authToken');
+   
     try {
       await apiRequest(
         'POST',
@@ -242,6 +245,7 @@ const ProductList = () => {
           onClick={() => {
             setWindowOpen(true);
             setIsMinimized(false);
+            
           }}
           style={{ marginBottom: 2 }}
         >
@@ -264,6 +268,8 @@ const ProductList = () => {
           <AddProductForm
             product={editProduct}
             onProductSaved={handleProductSaved}
+            number={number}  // Passing the number down
+            
           />
         </UniversalWindow>
       </Stack>

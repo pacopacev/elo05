@@ -12,11 +12,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ✅ Platform-specific media directory
 current_platform = platform.system()
 if current_platform == 'Windows':
-    MEDIA_ROOT = r'D:\elo05_uploaded_images'
+    MEDIA_ROOT = r'D:\flowbit_uploads\flowbit_uploaded_images'
     DOCUMENT_UPLOAD_ROOT = r'D:\elo05_flowbit_uploaded_documents'
    
 else:
-    MEDIA_ROOT = '/home/test/flowbit_uploads'
+    MEDIA_ROOT = '/home/test/flowbit_uploads/flowbit_uploaded_images' # Updated path
     DOCUMENT_UPLOAD_ROOT = '/home/test/flowbit_uploaded_documents'
 
 MEDIA_URL = '/media/'

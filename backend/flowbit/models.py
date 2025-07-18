@@ -2,25 +2,17 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.core.files.storage import FileSystemStorage
-import platform
-import os
 from django.conf import settings
 
-# ====== STORAGE DEFINITIONS FIRST ======
-# Platform-specific settings
-current_platform = platform.system()
-PRODUCT_IMAGES_ROOT = r'D:\elo05_uploaded_images' if current_platform == 'Windows' else '/home/test/flowbit_uploads/flowbit_uploaded_images'
-os.makedirs(PRODUCT_IMAGES_ROOT, exist_ok=True)
 
 class ProductImageStorage(FileSystemStorage):
     def __init__(self, location=None, base_url=None):
         if location is None:
-            location = PRODUCT_IMAGES_ROOT
-        super().__init__(location=location, base_url=base_url)
+            location = settings.MEDIA_ROOT # Now points to correct directory
+            super().__init__(location=location, base_url=settings.MEDIA_URL)
 
 # ====== PATH FUNCTION ======
 def product_image_directory_path(instance, filename):
-    """File will be uploaded to PRODUCT_IMAGES_ROOT/product_<id>/<filename>"""
     return f'product_{instance.product_id}/{filename}'
 
 # ====== MODELS ======

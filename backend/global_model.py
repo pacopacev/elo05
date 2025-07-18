@@ -116,10 +116,12 @@ class GlobalModel:
         user_data = serializer.data
 
         if avatar_path:
+            print("Avatar exists at:", avatar_path)
             relative_path = os.path.relpath(avatar_path, settings.MEDIA_ROOT)
             avatar_url = request.build_absolute_uri(settings.MEDIA_URL + relative_path.replace('\\', '/'))
             user_data['avatar'] = avatar_url
         else:
+            print("No avatar found for user")
             user_data['avatar'] = None
 
         return user_data

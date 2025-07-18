@@ -1,4 +1,4 @@
-from rest_framework import viewsets, generics, status
+from rest_framework import viewsets, generics, status, permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -15,13 +15,13 @@ User = get_user_model()
 
 class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_serializer_class(self):
-        # from pprint import pprint
-        # pprint(self.__dict__)
+        print("Action:", self.action)
         if self.action == 'create':
             return DocumentCreateSerializer
+        
         return DocumentSerializer
     
     def get_queryset(self):
@@ -122,3 +122,4 @@ class DocumentAccessViewSet(viewsets.ModelViewSet):
         if document_id:
             queryset = queryset.filter(document_id=document_id)
         return queryset
+    

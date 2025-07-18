@@ -10,8 +10,15 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/images/flowbit.png';
+import CloseIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
 
-const AddProductForm = ({ product, onProductSaved  }) => {
+const AddProductForm = ({ product, onProductSaved, number }) => {
+
+
+  // console.log(product.images); // Example of using the number state variable
+
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     code: '',
@@ -20,12 +27,13 @@ const AddProductForm = ({ product, onProductSaved  }) => {
   });
   const [preview, setPreview] = useState(logo);
   const [imageFiles, setImageFiles] = useState([]); // Changed to array for multiple images
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success',
   });
-
+  console.log(imageFiles)
   // When product changes, update form fields
   useEffect(() => {
     if (product) {
@@ -122,15 +130,18 @@ const AddProductForm = ({ product, onProductSaved  }) => {
   };
 
   return (
-    <Box sx={{ maxWidth: 300, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: 'white' }}>
+    <Box sx={{ maxWidth: 500, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: 'white' }}>
       <Typography variant="h5" className="erp-font" gutterBottom>
         Add Product
       </Typography>
 
       <form onSubmit={handleSubmit}>
+
         <Grid container direction="column" spacing={2}>
+
+
           <Grid container direction="row" spacing={2}>
-            <Grid item xs={12}>
+            <Grid container direction="column" spacing={2}> <Grid item xs={12}>
               <TextField
                 label="Product code"
                 name="code"
@@ -141,47 +152,69 @@ const AddProductForm = ({ product, onProductSaved  }) => {
               />
             </Grid>
 
-            <Grid item xs={12}>
-              <TextField
-                label="Product name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                fullWidth
-              />
-            </Grid>
-
-
-          </Grid>
-          <Grid container direction="row" spacing={2}><Grid item xs={12}>
-            <TextField
-              label="Description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              multiline
-              rows={1}
-              fullWidth
-            />
-          </Grid></Grid>
-          <Grid container direction="row" spacing={2}>
-            <Grid item>
+              <Grid item xs={12}>
+                <TextField
+                  label="Product name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  multiline
+                  rows={1}
+                  fullWidth
+                />
+              </Grid></Grid>
+            <Grid container direction="column" spacing={2}>     <Grid item>
               {preview && (
                 <Box
-                  component="img"
-                  alt="Preview"
-                  src={preview}
-                  sx={{
-                    width: 222,
-                    height: 222,
-                    mb: 2,
-                    borderRadius: 1,
-                    objectFit: 'cover',
-                    border: '1px solid',          // Default color (theme.palette.divider)
-                    borderColor: 'text.primary',
-                  }}
-                />
+                  position="relative"
+                  sx={{ mb: 2 }}
+                >
+                  <img
+                    alt="Preview"
+                    src={preview}
+                    style={{
+                      width: 200,
+                      height: 200,
+                      borderRadius: 1,
+                      objectFit: 'cover',
+                      border: '1px solid',
+                      borderColor: 'text.primary',
+                    }}
+                  />
+                  <IconButton
+                    onClick={() => {
+
+                      if (imageFiles.length > 0) {
+                        setImageFiles(imageFiles.pop()); // Clear selected files
+                      }
+                      setPreview(logo); // Reset to default preview
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      width: 24,
+                      height: 24,
+                      backgroundColor: 'rgba(0,0,0,0.5)',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                      },
+                    }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Box>
               )}
               <Button variant="contained" component="label" sx={{ mb: 2 }}>
                 Upload Images
@@ -198,21 +231,33 @@ const AddProductForm = ({ product, onProductSaved  }) => {
                   {imageFiles.length} image(s) selected
                 </Typography>
               )}
-            </Grid>
-
-
-          </Grid>
-          <Grid container direction="row" spacing={2} justifyContent="flex-end">    <Grid item>
-            <Button variant="contained" onClick={handleCancel} color="warning">
-              Cancel
-            </Button>
-          </Grid>
-            <Grid item>
-              <Button variant="contained" type="submit" color="success">
-                Save Product
-              </Button>
             </Grid></Grid>
+          </Grid>
+
+
+          <Grid container direction="row" spacing={2} justifyContent="flex-end">
+            <Grid item xs={12}><Button variant="contained" onClick={handleCancel} color="warning">
+              Cancel
+            </Button></Grid>
+
+            <Grid item> <Button variant="contained" type="submit" color="success">
+              Save Product
+            </Button></Grid>
+
+
+
+          </Grid>
+
+
         </Grid>
+
+
+
+
+
+
+
+
       </form>
 
       <Snackbar

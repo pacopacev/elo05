@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/styles.css'; // Import default styles for dropzone
 import {
   TextField,
@@ -9,14 +10,21 @@ import {
   Grid,
   Snackbar,
   Alert,
+  Stack
 } from '@mui/material';
+import UniversalButton from '../../components/buttons/UniversalButton';
 
 const NewDocumentForm = ({ }) => {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  
+
+  const navigate = useNavigate();
+    const handleCancel = () => {
+    navigate('..');
+  };
+
   const [documentData, setDocumentData] = useState({
     title: '',
     description: '',
@@ -50,7 +58,7 @@ const NewDocumentForm = ({ }) => {
 
     setUploading(true);
     setError(null);
-    
+
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -69,76 +77,95 @@ const NewDocumentForm = ({ }) => {
       });
 
       if (!response.ok) {
-        throw new Error(await response.text());
+        
+        const errorMessage = await response.text();
+        throw new Error(errorMessage.slice(2, -2));
       }
 
       setSuccess(true);
-      
+
     } catch (err) {
       setError(err.message);
     } finally {
       setUploading(false);
     }
+
   };
 
   return (
-<Box sx={{ maxWidth: 550, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: 'white' }}>
+    <Box sx={{ maxWidth: 550, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: 'white' }}>
       <Typography variant="h5" className="erp-font" gutterBottom>
         Create and Upload New Document
       </Typography>
-    
-    <div className="upload-modal">
-      
-      {error && <div className="error">{error}</div>}
-      {success && <div className="success">Upload successful!</div>}
 
-      
+      <div className="upload-modal">
+        {error && <div className="error">{error}</div>}
+        {success && <div className="success">Upload successful!</div>}
+
         <TextField
-                        label="Title"
-                        name="title"
-                        value={documentData.title}
-                        onChange={handleInputChange}
-                        required
-                        fullWidth
-                      />
-     
-      
+          sx={{ mb: 2 }}
+          label="Title"
+          name="title"
+          value={documentData.title}
+          onChange={handleInputChange}
+          required
+          fullWidth
+        />
 
-      <div className="form-group">
-        <label>Description</label>
-        <textarea
+        <TextField
+          sx={{ mb: 2 }}
+          label="Description"
           name="description"
           value={documentData.description}
           onChange={handleInputChange}
+          rows={2}
+          required
+          fullWidth
         />
-      </div>
 
-      <div className="form-group">
-        <label>Changes Description*</label>
-        <textarea
+        <TextField
+          label="Changes Description"
           name="changes"
           value={documentData.changes}
           onChange={handleInputChange}
+          rows={8}
           required
+          fullWidth
         />
-      </div>
 
-      <div {...getRootProps({ className: 'dropzone' })}>
-        <input {...getInputProps()} />
-        {file ? (
-          <p>{file.name} ({(file.size / 1024).toFixed(2)} KB)</p>
-        ) : (
-          <p>Drag & drop file here, or click to select</p>
-        )}
-      </div>
 
-      <button 
-        onClick={handleSubmit}
-        disabled={uploading}
-      >
-        {uploading ? 'Uploading...' : 'Upload Document'}
-      </button>
-    </div>
+        <div {...getRootProps({ className: 'dropzone' })}>
+          <input {...getInputProps()} />
+          {file ? (
+            <p>{file.name} ({(file.size / 1024).toFixed(2)} KB)</p>
+          ) : (
+            <p>Click to select</p>
+          )}
+        </div>
+
+
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+
+          <UniversalButton
+            sx={{ mt: 2 }}
+            onClick={handleCancel}
+            variant="danger"
+          >
+            Cancel
+          </UniversalButton>
+
+          <UniversalButton
+            sx={{ mt: 2 }}
+            onClick={handleSubmit}
+            disabled={uploading}
+            variant="success"
+          >
+            {uploading ? 'Uploading...' : 'Upload Document'}
+          </UniversalButton>
+
+        </Stack>
+
+      </div>
     </Box>
   );
 };

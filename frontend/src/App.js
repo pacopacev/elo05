@@ -20,6 +20,7 @@ import AddProductPage from './pages/flowbit/AddProductPage';
 import ProductListPage from './pages/flowbit/ProductListPage';
 
 import NewDocumentPage from './pages/dms/NewDocumentPage';
+import AllDocumentPage from './pages/dms/AllDocumentPage';
 
 
 
@@ -51,6 +52,7 @@ function App() {
         <Route path="/dms" element={<Dashboard />}>
           <Route index element={<MainPage />} />
           <Route path="new_document" element={<NewDocumentPage />} />
+          <Route path="documents" element={<AllDocumentPage />} />
 
         </Route>
 

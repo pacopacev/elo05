@@ -88,13 +88,17 @@ class DocumentVersion(models.Model):
         ordering = ['-version_number']
     
     def __str__(self):
-        return f"{self.document.title} v{self.version_number}"
+        return f"{self.document.title} {self.version_number}"
     
     def save(self, *args, **kwargs):
+        print("Saving DocumentVersion:", self.document.title, "v", self.version_number)
         if not self.version_number:
+            
             last_version = self.document.versions.order_by('-version_number').first()
-            self.version_number = (last_version.version_number + 1) if last_version else 1
-        
+            if last_version:
+                self.version_number = last_version.version_number + 1
+            else:
+                self.version_number = 1
         # Calculate file size and checksum
         if self.file and not self.pk:
             self.file_size = self.file.size
