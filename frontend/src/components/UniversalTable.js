@@ -83,6 +83,7 @@ const UniversalTable = ({
                       fontWeight: 'bold',
                       backgroundColor: 'background.default',
                       '&:hover': { backgroundColor: 'action.hover' },
+                      border: '1px solid rgba(224, 224, 224, 1)',
                     }}
                   >
                     <Box display="flex" alignItems="center">
@@ -107,7 +108,7 @@ const UniversalTable = ({
                   {row.cells.map(cell => (
                     <TableCell
                       {...cell.getCellProps()}
-                      sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
+                      sx={{ overflow: 'hidden', textOverflow: 'ellipsis', border: '1px solid rgba(224, 224, 224, 1)' }}
                     >
                       {cell.render('Cell')}
                     </TableCell>

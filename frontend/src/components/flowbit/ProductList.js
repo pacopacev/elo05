@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 
 const ProductList = () => {
-  const [number, setNumber] = useState(666); // Example state variable, can be used for testing or other purposes
+  const [test, setTest] = useState(false); // Example state variable, can be used for testing or other purposes
 
   // State declarations
   const [windowOpen, setWindowOpen] = useState(false);
@@ -45,7 +45,9 @@ const ProductList = () => {
     id: null,
     deleting: false
   });
-
+const closeForm = (data) => {
+    setWindowOpen(data);
+  };
   // Fetch data function
   const fetchData = useCallback(async (searchTerm = '') => {
     const token = localStorage.getItem('authToken');
@@ -174,7 +176,7 @@ const ProductList = () => {
               />
             ))
           ) : (
-            <span>No images</span>
+            <img src={logo} alt="Product" />
           )}
         </Box>
       )
@@ -268,7 +270,8 @@ const ProductList = () => {
           <AddProductForm
             product={editProduct}
             onProductSaved={handleProductSaved}
-            number={number}  // Passing the number down
+            test={test}  // Passing the number down
+            sendDataToParent={closeForm}
             
           />
         </UniversalWindow>

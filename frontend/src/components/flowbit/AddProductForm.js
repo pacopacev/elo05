@@ -13,28 +13,28 @@ import logo from '../../assets/images/flowbit.png';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 
-const AddProductForm = ({ product, onProductSaved, number }) => {
-
-
-  // console.log(product.images); // Example of using the number state variable
-
+const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => {
+  // console.log(test)
 
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    id: '',
     code: '',
     name: '',
     description: '',
+    images: [],
+    imagesToRemove: []
   });
+  
   const [preview, setPreview] = useState(logo);
-  const [imageFiles, setImageFiles] = useState([]); // Changed to array for multiple images
-
+  const [imageFiles, setImageFiles] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success',
   });
-  console.log(imageFiles)
-  // When product changes, update form fields
+
+  // Initialize form when product changes
   useEffect(() => {
     if (product) {
       setFormData({
@@ -42,15 +42,24 @@ const AddProductForm = ({ product, onProductSaved, number }) => {
         code: product.code || '',
         name: product.name || '',
         description: product.description || '',
+        images: product.images || [],
+        imagesToRemove: []
       });
-      // Optionally, set preview to first image if available
+      // Set preview to first image if available
       if (product.images && product.images.length > 0 && product.images[0].url) {
         setPreview(product.images[0].url);
       } else {
         setPreview(logo);
       }
     } else {
-      setFormData({ code: '', name: '', description: '' });
+      setFormData({ 
+        id: '',
+        code: '', 
+        name: '', 
+        description: '', 
+        images: [], 
+        imagesToRemove: [] 
+      });
       setPreview(logo);
       setImageFiles([]);
     }
@@ -67,7 +76,34 @@ const AddProductForm = ({ product, onProductSaved, number }) => {
       setImageFiles(files);
       // Preview the first image
       setPreview(URL.createObjectURL(files[0]));
+      
+      // Clear any existing images marked for removal
+      setFormData(prev => ({ ...prev, imagesToRemove: [] }));
     }
+  };
+
+  const handleClearImage = () => {
+    // Mark existing images for removal if editing
+    if (formData.images && formData.images.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        imagesToRemove: [...prev.imagesToRemove, ...prev.images.map(img => img.id)]
+      }));
+    }
+    
+    // Clear current state
+    setImageFiles([]);
+    setPreview(logo);
+    setFormData(prev => ({ ...prev, images: [] }));
+    
+    // Revoke object URL to prevent memory leaks
+    if (preview !== logo) {
+      URL.revokeObjectURL(preview);
+    }
+    
+    // Reset file input
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) fileInput.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -75,18 +111,29 @@ const AddProductForm = ({ product, onProductSaved, number }) => {
     try {
       const token = localStorage.getItem('authToken');
       const formPayload = new FormData();
+      
+      // Append basic fields
       formPayload.append('code', formData.code);
       formPayload.append('name', formData.name);
       formPayload.append('description', formData.description || '');
+      
+      // Append images to remove
+      formData.imagesToRemove.forEach(id => {
+        formPayload.append('images_to_remove', id);
+      });
+      
+      // Append new images
       imageFiles.forEach(file => {
         formPayload.append('images', file);
       });
 
       let url = `${process.env.REACT_APP_API_BASE_URL}/api/flowbit/products/`;
       let method = 'POST';
+      
       if (formData.id) {
         url += `${formData.id}/`;
-        method = 'PUT'; // or 'PATCH'
+        method = 'PUT';
+
       }
 
       const response = await fetch(url, {
@@ -109,12 +156,8 @@ const AddProductForm = ({ product, onProductSaved, number }) => {
         severity: 'success',
       });
 
-      // Call the parent callback
-      if (onProductSaved) {
-        onProductSaved();
-      }
-      // Optionally redirect after success
-      // setTimeout(() => navigate('/products'), 2000);
+      if (onProductSaved) onProductSaved();
+      
     } catch (error) {
       console.error('Save error:', error);
       setSnackbar({
@@ -126,31 +169,30 @@ const AddProductForm = ({ product, onProductSaved, number }) => {
   };
 
   const handleCancel = () => {
-    navigate('..');
+    sendDataToParent(false);
+    // navigate('..');
   };
 
   return (
     <Box sx={{ maxWidth: 500, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: 'white' }}>
       <Typography variant="h5" className="erp-font" gutterBottom>
-        Add Product
+        {formData.id ? 'Edit Product' : 'Add Product'}
       </Typography>
 
       <form onSubmit={handleSubmit}>
-
         <Grid container direction="column" spacing={2}>
-
-
           <Grid container direction="row" spacing={2}>
-            <Grid container direction="column" spacing={2}> <Grid item xs={12}>
-              <TextField
-                label="Product code"
-                name="code"
-                value={formData.code}
-                onChange={handleChange}
-                required
-                fullWidth
-              />
-            </Grid>
+            <Grid container direction="column" spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Product code"
+                  name="code"
+                  value={formData.code}
+                  onChange={handleChange}
+                  required
+                  fullWidth
+                />
+              </Grid>
 
               <Grid item xs={12}>
                 <TextField
@@ -172,13 +214,12 @@ const AddProductForm = ({ product, onProductSaved, number }) => {
                   rows={1}
                   fullWidth
                 />
-              </Grid></Grid>
-            <Grid container direction="column" spacing={2}>     <Grid item>
-              {preview && (
-                <Box
-                  position="relative"
-                  sx={{ mb: 2 }}
-                >
+              </Grid>
+            </Grid>
+            
+            <Grid container direction="column" spacing={2}>
+              <Grid item>
+                <Box position="relative" sx={{ mb: 2 }}>
                   <img
                     alt="Preview"
                     src={preview}
@@ -191,73 +232,56 @@ const AddProductForm = ({ product, onProductSaved, number }) => {
                       borderColor: 'text.primary',
                     }}
                   />
-                  <IconButton
-                    onClick={() => {
-
-                      if (imageFiles.length > 0) {
-                        setImageFiles(imageFiles.pop()); // Clear selected files
-                      }
-                      setPreview(logo); // Reset to default preview
-                    }}
-                    style={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      width: 24,
-                      height: 24,
-                      backgroundColor: 'rgba(0,0,0,0.5)',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                      },
-                    }}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
+                  {preview !== logo && (
+                    <IconButton
+                      onClick={handleClearImage}
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0,0,0,0.7)',
+                        },
+                      }}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  )}
                 </Box>
-              )}
-              <Button variant="contained" component="label" sx={{ mb: 2 }}>
-                Upload Images
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  multiple
-                  onChange={handleImageChange}
-                />
-              </Button>
-              {imageFiles.length > 0 && (
-                <Typography variant="caption" display="block">
-                  {imageFiles.length} image(s) selected
-                </Typography>
-              )}
-            </Grid></Grid>
+                <Button variant="contained" component="label" sx={{ mb: 2 }}>
+                  Upload Images
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    multiple
+                    onChange={handleImageChange}
+                  />
+                </Button>
+                {imageFiles.length > 0 && (
+                  <Typography variant="caption" display="block">
+                    {imageFiles.length} image(s) selected
+                  </Typography>
+                )}
+              </Grid>
+            </Grid>
           </Grid>
-
 
           <Grid container direction="row" spacing={2} justifyContent="flex-end">
-            <Grid item xs={12}><Button variant="contained" onClick={handleCancel} color="warning">
-              Cancel
-            </Button></Grid>
-
-            <Grid item> <Button variant="contained" type="submit" color="success">
-              Save Product
-            </Button></Grid>
-
-
-
+            <Grid item>
+              <Button variant="contained" onClick={handleCancel} color="warning">
+                Cancel
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button variant="contained" type="submit" color="success">
+                {formData.id ? 'Update' : 'Save'} Product
+              </Button>
+            </Grid>
           </Grid>
-
-
         </Grid>
-
-
-
-
-
-
-
-
       </form>
 
       <Snackbar

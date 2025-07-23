@@ -100,12 +100,15 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
+        print("Request data for update:", request.data)
         print("Updating existing product")
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         updated_product = serializer.save(created_by=request.user)
+        self.remove_image(request, pk=updated_product.id)  # Remove images if specified
+        
         images = request.FILES.getlist('images', [])
         for image in images:
             ProductImage.objects.create(
@@ -157,6 +160,22 @@ class ProductViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Auto-set created_by to current user"""
         serializer.save(created_by=self.request.user)
+    
+    def remove_image(self, request, pk=None):
+        """
+        Remove an image from a product
+        """
+        image_id = request.data.get('images_to_remove')
+        print(f"Removing image with ID: {image_id} from product with ID: {pk}")
+        if not image_id:
+            return Response({'error': 'image_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            image = ProductImage.objects.get(id=image_id, product_id=pk)
+            image.delete()
+            return Response({'message': 'Image deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except ProductImage.DoesNotExist:
+            return Response({'error': 'Image not found'}, status=status.HTTP_404_NOT_FOUND)
         
     
     
