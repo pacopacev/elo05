@@ -46,6 +46,7 @@ const ProductList = () => {
     deleting: false
   });
 const closeForm = (data) => {
+  console.log(data)
     setWindowOpen(data);
   };
   // Fetch data function
@@ -131,14 +132,14 @@ const closeForm = (data) => {
   };
 
   const columns = useMemo(() => [
-    { Header: 'ID', accessor: 'id', width: 20 },
-    { Header: 'Product Code', accessor: 'code', width: 30 },
-    { Header: 'Product Name', accessor: 'name', width: 20 },
-    { Header: 'Description', accessor: 'description', width: 100 },
+    { Header: 'ID', accessor: 'id', width: 10 },
+    { Header: 'Product Code', accessor: 'code', width: 80 },
+    { Header: 'Product Name', accessor: 'name', width: 300 },
+    { Header: 'Description', accessor: 'description', width: 300 },
     {
       Header: 'Date Created',
       accessor: 'created_at',
-      width: 300,
+      width: 100,
       Cell: ({ value }) =>
         new Intl.DateTimeFormat('en-GB', {
           year: 'numeric',
@@ -152,7 +153,7 @@ const closeForm = (data) => {
     {
       Header: 'Images',
       accessor: 'images',
-      width: 150,
+      width: 200,
       Cell: ({ value }) => (
         <Box sx={{
           display: 'flex',
@@ -184,7 +185,7 @@ const closeForm = (data) => {
     {
       Header: 'Actions',
       accessor: 'actions',
-      width: 200,
+      width: 50,
       Cell: ({ row }) => (
         <div style={{ display: 'flex', gap: 8 }}>
           <Button

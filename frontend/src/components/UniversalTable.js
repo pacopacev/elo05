@@ -16,7 +16,7 @@ const UniversalTable = ({
   manualPagination = false
 }) => {
   const defaultColumn = React.useMemo(() => ({
-    minWidth: 50,
+    minWidth: 10,
     width: 150,
     maxWidth: 500,
   }), []);
@@ -84,6 +84,7 @@ const UniversalTable = ({
                       backgroundColor: 'background.default',
                       '&:hover': { backgroundColor: 'action.hover' },
                       border: '1px solid rgba(224, 224, 224, 1)',
+                      width: column.width,
                     }}
                   >
                     <Box display="flex" alignItems="center">
@@ -149,3 +150,4 @@ const UniversalTable = ({
 };
 
 export default UniversalTable;
+

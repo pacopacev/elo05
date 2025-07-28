@@ -12,10 +12,26 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/images/flowbit.png';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
+import ImageGallery from 'react-image-gallery';
+import "react-image-gallery/styles/css/image-gallery.css";
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+
 
 const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => {
   // console.log(test)
+  const [galleryImages, setGalleryImages] = useState([]);
 
+  // Handle multiple image uploads
+  // const handleGalleryUpload = (e) => {
+  //   const files = Array.from(e.target.files);
+  //   const newImages = files.map(file => URL.createObjectURL(file));
+  //   setGalleryImages([...galleryImages, ...newImages]);
+  // };
+
+  // Remove an image by index
+  const handleRemoveImage = (index) => {
+    setGalleryImages(galleryImages.filter((_, i) => i !== index));
+  };
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     id: '',
@@ -25,7 +41,7 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
     images: [],
     imagesToRemove: []
   });
-  
+
   const [preview, setPreview] = useState(logo);
   const [imageFiles, setImageFiles] = useState([]);
   const [snackbar, setSnackbar] = useState({
@@ -52,13 +68,13 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
         setPreview(logo);
       }
     } else {
-      setFormData({ 
+      setFormData({
         id: '',
-        code: '', 
-        name: '', 
-        description: '', 
-        images: [], 
-        imagesToRemove: [] 
+        code: '',
+        name: '',
+        description: '',
+        images: [],
+        imagesToRemove: []
       });
       setPreview(logo);
       setImageFiles([]);
@@ -76,10 +92,20 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
       setImageFiles(files);
       // Preview the first image
       setPreview(URL.createObjectURL(files[0]));
-      
+
       // Clear any existing images marked for removal
       setFormData(prev => ({ ...prev, imagesToRemove: [] }));
     }
+  };
+
+  const handleGalleryUpload = (e) => {
+    const files = Array.from(e.target.files);
+
+    if (files.length === 0) return;
+    setImageFiles(files);
+
+    const newImages = files.map(file => URL.createObjectURL(file));
+    setGalleryImages([...galleryImages, ...newImages]);
   };
 
   const handleClearImage = () => {
@@ -90,17 +116,17 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
         imagesToRemove: [...prev.imagesToRemove, ...prev.images.map(img => img.id)]
       }));
     }
-    
+
     // Clear current state
     setImageFiles([]);
     setPreview(logo);
     setFormData(prev => ({ ...prev, images: [] }));
-    
+
     // Revoke object URL to prevent memory leaks
     if (preview !== logo) {
       URL.revokeObjectURL(preview);
     }
-    
+
     // Reset file input
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) fileInput.value = '';
@@ -111,17 +137,17 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
     try {
       const token = localStorage.getItem('authToken');
       const formPayload = new FormData();
-      
+
       // Append basic fields
       formPayload.append('code', formData.code);
       formPayload.append('name', formData.name);
       formPayload.append('description', formData.description || '');
-      
+
       // Append images to remove
       formData.imagesToRemove.forEach(id => {
         formPayload.append('images_to_remove', id);
       });
-      
+
       // Append new images
       imageFiles.forEach(file => {
         formPayload.append('images', file);
@@ -129,7 +155,7 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
 
       let url = `${process.env.REACT_APP_API_BASE_URL}/api/flowbit/products/`;
       let method = 'POST';
-      
+
       if (formData.id) {
         url += `${formData.id}/`;
         method = 'PUT';
@@ -157,7 +183,7 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
       });
 
       if (onProductSaved) onProductSaved();
-      
+
     } catch (error) {
       console.error('Save error:', error);
       setSnackbar({
@@ -169,12 +195,12 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
   };
 
   const handleCancel = () => {
-    sendDataToParent(false);
-    // navigate('..');
+    sendDataToParent ? sendDataToParent(false) : navigate('..');
+
   };
 
   return (
-    <Box sx={{ maxWidth: 500, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: 'white' }}>
+    <Box sx={{ maxWidth: 700, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: 'white' }}>
       <Typography variant="h5" className="erp-font" gutterBottom>
         {formData.id ? 'Edit Product' : 'Add Product'}
       </Typography>
@@ -182,8 +208,8 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
       <form onSubmit={handleSubmit}>
         <Grid container direction="column" spacing={2}>
           <Grid container direction="row" spacing={2}>
-            <Grid container direction="column" spacing={2}>
-              <Grid item xs={12}>
+            <Grid container direction="column" spacing={2} >
+              <Grid item xs={12} md={8}>
                 <TextField
                   label="Product code"
                   name="code"
@@ -211,15 +237,125 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
                   value={formData.description}
                   onChange={handleChange}
                   multiline
-                  rows={1}
+                  rows={5}
                   fullWidth
                 />
               </Grid>
             </Grid>
-            
-            <Grid container direction="column" spacing={2}>
+
+            <Grid container direction="column" spacing={2} >
               <Grid item>
-                <Box position="relative" sx={{ mb: 2 }}>
+
+                {galleryImages.length > 0 ? (
+                  <Box sx={{ mb: 3 }} border={1} borderColor="grey.300" borderRadius={1} overflow="hidden" >
+                    <ImageGallery
+                      items={galleryImages.map((img, index) => ({
+                        original: img,
+                        thumbnail: img,
+                        renderItem: () => (
+                          <Box sx={{ position: '', display: 'inline-block' }}>
+                            <img
+                              src={img}
+                              alt={`Gallery item ${index + 1}`}
+                              style={{
+                                width: '100%',
+                                height: '200px',
+                                objectFit: 'contain',
+                                backgroundColor: '#f5f5f5',
+                                
+                              }}
+                            />
+                            <IconButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveImage(index);
+                              }}
+                              sx={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                backgroundColor: 'rgba(0,0,0,0.5)',
+                                color: 'white',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(0,0,0,0.7)',
+                                }
+                              }}
+                            >
+                              <CloseIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        ),
+                        renderThumbInner: () => (
+                          <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                            <img
+                              src={img}
+                              alt={`Thumbnail ${index + 1}`}
+                              style={{
+                                width: '100%',
+                                height: '80px',
+                                objectFit: 'cover'
+                              }}
+                            />
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveImage(index);
+                              }}
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                right: 0,
+                                backgroundColor: 'rgba(0,0,0,0.5)',
+                                color: 'white',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(0,0,0,0.7)',
+                                }
+                              }}
+                            >
+                              <CloseIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        )
+                      }))}
+                      showPlayButton={false}
+                      showFullscreenButton={true}
+                      showThumbnails={true}
+                      additionalClass="custom-gallery"
+                    />
+                  </Box>
+                ) : (
+                  <Box position="relative" sx={{ mb: 2 }}>
+                    <img
+                      alt="Preview"
+                      src={preview}
+                      style={{
+                        width: '100%',
+                        height: 300,
+                        borderRadius: 1,
+                        objectFit: 'cover',
+                        border: '1px solid',
+                        borderColor: 'text.primary',
+                      }}
+                    />
+                    <Button sx={{ mt: 2, ml: 0 }}
+                      variant="outlined"
+                      component="label"
+                      startIcon={<AddPhotoAlternateIcon />}
+                    >
+                      Upload Images
+                      <input
+                        type="file"
+                        hidden
+                        multiple
+                        accept="image/*"
+                        onChange={handleGalleryUpload}
+                      />
+                    </Button>
+                  </Box>
+                )}
+
+                {/* <Box position="relative" sx={{ mb: 2 }}>
                   <img
                     alt="Preview"
                     src={preview}
@@ -232,6 +368,7 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
                       borderColor: 'text.primary',
                     }}
                   />
+
                   {preview !== logo && (
                     <IconButton
                       onClick={handleClearImage}
@@ -249,8 +386,8 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
                       <CloseIcon fontSize="small" />
                     </IconButton>
                   )}
-                </Box>
-                <Button variant="contained" component="label" sx={{ mb: 2 }}>
+                </Box> */}
+                {/* <Button variant="contained" component="label" sx={{ mb: 2 }}>
                   Upload Images
                   <input
                     type="file"
@@ -259,12 +396,12 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
                     multiple
                     onChange={handleImageChange}
                   />
-                </Button>
-                {imageFiles.length > 0 && (
+                </Button> */}
+                {/* {imageFiles.length > 0 && (
                   <Typography variant="caption" display="block">
                     {imageFiles.length} image(s) selected
                   </Typography>
-                )}
+                )} */}
               </Grid>
             </Grid>
           </Grid>
