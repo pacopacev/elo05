@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
+from django.core.validators import MaxLengthValidator
 
 
 class ProductImageStorage(FileSystemStorage):
@@ -19,7 +20,8 @@ def product_image_directory_path(instance, filename):
 class Product(models.Model):
     name = models.CharField('Product Name', max_length=100)
     code = models.CharField('Product Code', max_length=30, unique=True)
-    description = models.TextField(blank=True, null=True)
+    description = models.CharField('Description',blank=True, null=True, max_length=100, validators=[MaxLengthValidator(100)],
+        help_text="Maximum 100 characters allowed")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(

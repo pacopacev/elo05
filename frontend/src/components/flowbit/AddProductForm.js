@@ -20,6 +20,7 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => {
   // console.log(test)
   const [galleryImages, setGalleryImages] = useState([]);
+  const [error, setError] = useState(null);
 
   // Handle multiple image uploads
   // const handleGalleryUpload = (e) => {
@@ -83,7 +84,19 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Validation
+    if (value.length > 100) {
+      setError('Maximum 100 characters allowed');
+      setSnackbar({
+        open: true,
+        message: 'Maximum 100 characters allowed',
+        severity: 'error',
+      });
+    } else {
+      setError(null);
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleImageChange = (e) => {
@@ -236,6 +249,8 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
+                  error={!!error}
+                  helperText={error || ' '}  // Empty string preserves layout
                   multiline
                   rows={5}
                   fullWidth
@@ -262,7 +277,7 @@ const AddProductForm = ({ product, onProductSaved, test, sendDataToParent }) => 
                                 height: '200px',
                                 objectFit: 'contain',
                                 backgroundColor: '#f5f5f5',
-                                
+
                               }}
                             />
                             <IconButton
