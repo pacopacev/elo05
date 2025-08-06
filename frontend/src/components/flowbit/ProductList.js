@@ -134,8 +134,8 @@ const closeForm = (data) => {
   const columns = useMemo(() => [
     { Header: 'ID', accessor: 'id', width: 10 },
     { Header: 'Product Code', accessor: 'code', width: 80 },
-    { Header: 'Product Name', accessor: 'name', width: 300 },
-    { Header: 'Description', accessor: 'description', width: 300 },
+    { Header: 'Product Name', accessor: 'name', width: 100 },
+    { Header: 'Description', accessor: 'description', width: 250 },
     {
       Header: 'Date Created',
       accessor: 'created_at',
@@ -185,10 +185,10 @@ const closeForm = (data) => {
     {
       Header: 'Actions',
       accessor: 'actions',
-      width: 50,
+      width: 20,
       Cell: ({ row }) => (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button
+        <div style={{ }}>
+          <Button sx ={{ mr: 1 }}
             variant="contained"
             color="success"
             size="small"
@@ -220,11 +220,12 @@ const closeForm = (data) => {
   return (
     <>
       <Tooltip title="This is a list of all products.">
-        <Typography variant="h5" className="erp-font" gutterBottom>
+        <Typography variant="h5" fontWeight = 'bold' className="erp-font" gutterBottom>
           Product list
         </Typography>
       </Tooltip>
-      <Stack direction="row" justifyContent="flex-end">
+      <hr style={{border: "1px solid #ccc"}}></hr> 
+      <Stack direction="row" justifyContent="flex-end" sx = {{ mt: 2 }}>
         <Box
           component="form"
           sx={{
@@ -277,7 +278,7 @@ const closeForm = (data) => {
           />
         </UniversalWindow>
       </Stack>
-      <Box sx={{ my: 1 }} />
+    
       <UniversalTable
         columns={columns}
         data={tableData}
